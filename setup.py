@@ -5,7 +5,7 @@ setup(
     version='0.0.1',
     packages=['nucapt'],
     description='Web service for keeping track of NUCAPT datasets',
-    instal_requires=[
+    install_requires=[
         'flask==0.12.2',
         'wtforms==2.1',
     ],
