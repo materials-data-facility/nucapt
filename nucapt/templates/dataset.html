@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NUCAPT: Create Dataset</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}"/>
+    <script src="{{ url_for('static', filename='js/jquery-3.2.1.min.js')}}"></script>
+    <script type = 'text/javascript' language="javascript">
+    </script>
+</head>
+<body>
+    <div class="container">
+	    <img src="{{ url_for('static', filename='nucapt.png') }}"/>
+        <h1>Dataset {{ name }}</h1>
+
+        {% if errors is not none %}
+        <h2>Dataset Parsing Errors</h2>
+
+        <ul>
+            {% for error in errors %}
+            <li>{{ error | safe }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if dataset is not none %}
+        <p>Location: {{ dataset.path }}</p>
+
+        <h3>Title</h3>
+        <p>{{ dataset.title | safe }}</p>
+
+        <h3>Authors</h3>
+        {% for author in dataset.authors %}
+        <p>{{ author['first_name'] | safe }} {{ author['last_name'] | safe }} ({{ author['affiliation'] | safe }})</p>
+        {% endfor %}
+        {% endif %}
+
+        <h3>Abstract</h3>
+
+        <p>{{ dataset.abstract | safe }}</p>
+
+        <h3>Dates</h3>
+
+        {% for name,date in dataset.dates.items() %}
+        <p><label>{{name | safe}}</label>: {{ date | safe }}</p>
+        {% endfor %}
+
+    </div>
+</body>
+</html>

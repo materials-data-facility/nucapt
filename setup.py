@@ -8,5 +8,7 @@ setup(
     install_requires=[
         'flask==0.12.2',
         'wtforms==2.1',
+        'pyyaml==3.12',
+        'six==1.10.0'
     ],
 )
