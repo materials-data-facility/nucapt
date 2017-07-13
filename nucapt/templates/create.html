@@ -58,6 +58,9 @@
                 {{ form.title(class="form-control") | safe }}
             </div>
 
+            <h4>Abstract</h4>
+            {{ form.abstract(class="form-control", rows="4") | safe }}
+
             <h4>Authors</h4>
             <table class="table" id="author_table">
                 <tr><th>First Name</th><th>Last Name</th><th>Affliation</th></tr>
