@@ -1,98 +1,19 @@
 """Operations relating to managing data folders on NUCAPT servers"""
 
 import os
-import nucapt
-from datetime import date
 import shutil
+from datetime import date
+
 import yaml
-from six import string_types
+
+import nucapt
+from nucapt.exceptions import DatasetParseException
+from nucapt.metadata import APTDataCollectionMetadata
 
 # Key variables
 module_dir = os.path.dirname(os.path.abspath(nucapt.__file__))
 template_path = os.path.join(module_dir, '..', 'template_directory')
 data_path = os.path.join(module_dir, '..', 'working_directory')
-
-
-class DatasetParseException(Exception):
-    """Holds error(s) detected during dataset parsing"""
-
-    def __init__(self, errors):
-        """Errors found during metadata parsing
-
-        :param errors: str or list, errors found during parsing
-        """
-        if isinstance(errors, string_types):
-            self.errors = [errors]
-        else:
-            self.errors = errors
-
-    def __str__(self):
-        return "<%d metadata errors>"%len(self.errors)
-
-
-# LW 13Jul17: This is a clunky way for specifying the keys that should
-#   be in this metadata class. These are the only kwargs allowed by the constructor,
-#   which will check to make sure they exist
-expected_apt_metadata_fields = {
-    'leap_model', 'evaporation_mode', 'voltage_ratio', 'laser_pulse_energy','laser_frequency',
-    'temperature', 'detection_rate', 'starting_voltage', 'chamber_pressure', 'misc'
-}
-# LW 14Jul17: TBD, switch over to using jsonschema to validate these
-
-
-class APTDataCollectionMetadata:
-    """Class to store the APT metadata"""
-
-    def __init__(self, **kwargs):
-        """Please use `load_from_file` instead
-
-        See `LEAPMetadataForm` for more details
-        """
-        self.metadata = kwargs
-
-        # Check to make sure it has exactly the expected fields
-        if set(kwargs.keys()) != expected_apt_metadata_fields:
-            errors = []
-            # List out extra fields
-            for field in set(kwargs.keys()).difference(expected_apt_metadata_fields):
-                errors.append('Extra field in APT data collection metadata: ' + field)
-            for field in expected_apt_metadata_fields.difference(kwargs.keys()):
-                errors.append('APT data collection data missing field: ' + field)
-            raise DatasetParseException(errors)
-
-    @classmethod
-    def from_form(cls, form):
-        """Generate this metadata class from a form object
-
-        :param form: LEAPMetadataForm, webpage form"""
-
-        metadata = form.data
-        return cls(**metadata)
-
-    @classmethod
-    def from_yaml(cls, path):
-        """Load metadata from YAML file
-
-         :param path: str, path to YAML file"""
-
-        if not os.path.isfile(path):
-            raise DatasetParseException('APT data collection metadata file not found: ' + path)
-
-        with open(path, 'r') as fp:
-            try:
-                data = yaml.load(fp)
-            except:
-                raise DatasetParseException('APT data collection metadata file not valid YAML: ' + path)
-            return APTDataCollectionMetadata(**data)
-
-    def to_yaml(self, path):
-        """Save metadata to a YML file"""
-
-        try:
-            with open(path, 'w') as fp:
-                yaml.dump(self.metadata, fp)
-        except IOError as exc:
-            raise DatasetParseException('Save for YAML file failed: ' + str(exc))
 
 
 class APTDataDirectory:
@@ -144,9 +65,9 @@ class APTDataDirectory:
         metadata_dir = os.path.join(path, 'General')
         metadata_file = os.path.join(metadata_dir, 'GeneralMetadata.yml')
         if not os.path.isdir(metadata_dir):
-            raise DatasetParseException('General metadata directory missing: %s'%metadata_dir)
+            raise DatasetParseException('General metadata directory missing: %s' % metadata_dir)
         if not os.path.isfile(metadata_file):
-            raise DatasetParseException('General metadata file not found: %s'%metadata_file)
+            raise DatasetParseException('General metadata file not found: %s' % metadata_file)
 
         # Try to read in the metadata
         try:

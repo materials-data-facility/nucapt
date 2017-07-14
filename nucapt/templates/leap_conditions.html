@@ -58,7 +58,7 @@
 
         {% if errors is not none %}
         <h2>Metadata Errors</h2>
-
+        <p>The file holding the LEAP collection metadata has a few problems:</p>
         <ol>
             {% for error in errors %}
             <li>{{ error | safe }}</li>
@@ -66,6 +66,7 @@
         </ol>
         {% endif %}
 
+        {% if form is not none %}
         <form class='form-horizontal' method=post>
             <div class="form-group">
                 <label>LEAP Model</label>
@@ -90,7 +91,7 @@
 
             <div class="form-group">
                 <label>Temperature</label>
-                {{ form.leap_model(class="form-control") | safe }} (units)
+                {{ form.temperature(class="form-control") | safe }} (units)
                 <span class="help-block">{{ form.temperature.description }}</span>
             </div>
 
@@ -129,6 +130,7 @@
 
             <p><input type="submit" class="btn-lg btn-primary" value="Update Metadata"/></p>
         </form>
+        {% endif %}
 
     </div>
 </body>

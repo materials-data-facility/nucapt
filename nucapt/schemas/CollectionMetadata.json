@@ -1,0 +1,71 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "CollectionMetadata",
+    "description": "Record describing the metadata describing how an APT dataset was collected",
+    "type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"leap_model": {
+			"type": "string",
+			"description": "Model of LEAP used to collect data"
+		},
+		"evaporation_mode": {
+			"type": "string",
+			"description": "Method used to evaporate sample",
+			"enum": ["voltage", "laser"]
+		},
+		"voltage_ratio": {
+			"type": "number",
+			"description": "Voltage ratio used in evaporation (units)",
+			"minimum": 0
+		},
+		"laser_pulse_energy": {
+			"type": "number",
+			"description": "Laser pulse energy used in evaporation (units)",
+			"minimum": 0
+		},
+		"laser_frequency": {
+			"type": "number",
+			"description": "Laser frequency (units)",
+			"minimum": 0
+		},
+		"laser_pulse_energy": {
+			"type": "number",
+			"description": "Laser pulse energy used in evaporation (units)",
+			"minimum": 0
+		},
+		"temperature": {
+			"type": "number",
+			"description": "Temperature (units)"
+		},
+		"detection_rate": {
+			"type": "number",
+			"description": "Detection rate (ion/pulse)",
+			"minimum": 0
+		},
+		"starting_voltage": {
+			"type": "number",
+			"description": "Starting voltage (units)"
+		},
+		"chamber_pressure": {
+			"type": "number",
+			"description": "Chamber pressure (torr)"
+		},
+		"misc": {
+			"type": "array",
+			"description": "Anything else that is pertinent",
+			"items": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"key": {
+						"type": "string"
+					},
+					"value": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	}	
+}

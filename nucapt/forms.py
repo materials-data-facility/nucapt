@@ -30,7 +30,7 @@ class LEAPMetadataForm(Form):
 
     leap_model = StringField('LEAP Model', description="Model of LEAP used to collect data",
                              default='A nice one')
-    evaporation_mode = RadioField('Evaporation Mode', choices=[('v','Voltage'), ('l','Laser')],
+    evaporation_mode = RadioField('Evaporation Mode', choices=[('voltage','Voltage'), ('laser','Laser')],
                                   description='Method used to evaporate sample',
                                   default='v')
     voltage_ratio = FloatField('Voltage Ratio', description='Voltage ratio used in evaporation (units)',
