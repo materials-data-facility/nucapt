@@ -52,8 +52,7 @@ def leap_metadata(name):
             metadata = dataset.load_collection_metadata()
         except DatasetParseException as err:
             return render_template('leap_conditions.html', form=None, name=name, errors=err.errors)
-        if metadata is not None:
-            form = LEAPMetadataForm(**metadata.metadata)
+        form = LEAPMetadataForm(**metadata.metadata) if metadata is not None else LEAPMetadataForm(request.form)
     else:
         form = LEAPMetadataForm(request.form)
 

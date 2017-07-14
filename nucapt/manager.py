@@ -8,7 +8,7 @@ import yaml
 
 import nucapt
 from nucapt.exceptions import DatasetParseException
-from nucapt.metadata import APTDataCollectionMetadata
+from nucapt.metadata import APTDataCollectionMetadata, GeneralMetadata
 
 # Key variables
 module_dir = os.path.dirname(os.path.abspath(nucapt.__file__))
@@ -64,41 +64,15 @@ class APTDataDirectory:
         # Read in the general metadata
         metadata_dir = os.path.join(path, 'General')
         metadata_file = os.path.join(metadata_dir, 'GeneralMetadata.yml')
-        if not os.path.isdir(metadata_dir):
-            raise DatasetParseException('General metadata directory missing: %s' % metadata_dir)
-        if not os.path.isfile(metadata_file):
-            raise DatasetParseException('General metadata file not found: %s' % metadata_file)
+        metadata = GeneralMetadata.from_yaml(metadata_file)
+        is_valid, errors = metadata.validate_data()
 
-        # Try to read in the metadata
-        try:
-            with open(metadata_file, 'r') as fp:
-                metadata = yaml.load(fp)
-        except ValueError as err:
-            raise DatasetParseException('Metadata file not valid YML: ' + str(err))
-
-        # Check that required data is present
-        errors = []
-        for tag in ['Title', 'Authors', 'Abstract', 'Date']:
-            if tag not in metadata:
-                errors.append('Metadata file missing required field: ' + tag)
-
-        #   Check dates
-        if 'Dates' in metadata:
-            if 'Creation' not in metadata['Date']:
-                errors.append('Missing required date: Creation')
-        #    Check authors
-        if 'Authors' in metadata:
-            if not isinstance(metadata['Authors'], list):
-                raise Exception('Authors metadata is not a list')
-            for aid, author in enumerate(metadata['Authors']):
-                for field in ['first_name', 'last_name', 'affiliation']:
-                    if field not in author:
-                        raise Exception('Author %d missing field: %s'%(aid, field))
+        # Get the, now validated, metadata out of
 
         if len(errors) > 0:
             raise DatasetParseException(errors)
-        return cls(name, path, metadata['Abstract'], metadata['Authors'],
-                   metadata['Date'], metadata['Title'])
+        return cls(name, path, metadata.metadata['abstract'], metadata['authors'],
+                   metadata['dates'], metadata['title'])
 
     @staticmethod
     def initialize_dataset(title, abstract, authors):
@@ -127,10 +101,10 @@ class APTDataDirectory:
 
         # Generate the dataset metadata
         my_metadata = dict(
-            Abstract=abstract,
-            Title=title,
-            Authors=authors,
-            Date={'Creation':date.today().strftime("%d%b%y")}
+            abstract=abstract,
+            title=title,
+            authors=authors,
+            dates={'creation_date': date.today().strftime("%d%b%y")}
         )
 
         # Write to disk

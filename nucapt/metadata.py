@@ -25,6 +25,9 @@ class MetadataHolder:
         if not is_valid:
             raise DatasetParseException(errors)
 
+    def __getitem__(self, item):
+        return self.metadata[item]
+
     def _get_schema_path(self):
         """Get path to schemas
         
@@ -68,7 +71,7 @@ class MetadataHolder:
                 data = yaml.load(fp)
             except:
                 raise DatasetParseException('Metadata file not valid YAML: ' + path)
-            return APTDataCollectionMetadata(**data)
+            return cls(**data)
 
     def to_yaml(self, path):
         """Save metadata to a YML file"""
@@ -85,3 +88,10 @@ class APTDataCollectionMetadata(MetadataHolder):
 
     def _get_schema_path(self):
         return os.path.join(schema_path, "CollectionMetadata.json")
+
+
+class GeneralMetadata(MetadataHolder):
+    """Class to hold general metadata about dataste"""
+
+    def _get_schema_path(self):
+        return os.path.join(schema_path, "GeneralMetadata.json")

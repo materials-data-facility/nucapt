@@ -9,6 +9,7 @@ setup(
         'flask==0.12.2',
         'wtforms==2.1',
         'pyyaml==3.12',
-        'six==1.10.0'
+        'six==1.10.0',
+        'jsonschema==2.6.0',
     ],
 )
