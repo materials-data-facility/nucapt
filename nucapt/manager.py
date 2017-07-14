@@ -30,6 +30,71 @@ class DatasetParseException(Exception):
         return "<%d metadata errors>"%len(self.errors)
 
 
+# LW 13Jul17: This is a clunky way for specifying the keys that should
+#   be in this metadata class. These are the only kwargs allowed by the constructor,
+#   which will check to make sure they exist
+expected_apt_metadata_fields = {
+    'leap_model', 'evaporation_mode', 'voltage_ratio', 'laser_pulse_energy','laser_frequency',
+    'temperature', 'detection_rate', 'starting_voltage', 'chamber_pressure', 'misc'
+}
+# LW 14Jul17: TBD, switch over to using jsonschema to validate these
+
+
+class APTDataCollectionMetadata:
+    """Class to store the APT metadata"""
+
+    def __init__(self, **kwargs):
+        """Please use `load_from_file` instead
+
+        See `LEAPMetadataForm` for more details
+        """
+        self.metadata = kwargs
+
+        # Check to make sure it has exactly the expected fields
+        if set(kwargs.keys()) != expected_apt_metadata_fields:
+            errors = []
+            # List out extra fields
+            for field in set(kwargs.keys()).difference(expected_apt_metadata_fields):
+                errors.append('Extra field in APT data collection metadata: ' + field)
+            for field in expected_apt_metadata_fields.difference(kwargs.keys()):
+                errors.append('APT data collection data missing field: ' + field)
+            raise DatasetParseException(errors)
+
+    @classmethod
+    def from_form(cls, form):
+        """Generate this metadata class from a form object
+
+        :param form: LEAPMetadataForm, webpage form"""
+
+        metadata = form.data
+        return cls(**metadata)
+
+    @classmethod
+    def from_yaml(cls, path):
+        """Load metadata from YAML file
+
+         :param path: str, path to YAML file"""
+
+        if not os.path.isfile(path):
+            raise DatasetParseException('APT data collection metadata file not found: ' + path)
+
+        with open(path, 'r') as fp:
+            try:
+                data = yaml.load(fp)
+            except:
+                raise DatasetParseException('APT data collection metadata file not valid YAML: ' + path)
+            return APTDataCollectionMetadata(**data)
+
+    def to_yaml(self, path):
+        """Save metadata to a YML file"""
+
+        try:
+            with open(path, 'w') as fp:
+                yaml.dump(self.metadata, fp)
+        except IOError as exc:
+            raise DatasetParseException('Save for YAML file failed: ' + str(exc))
+
+
 class APTDataDirectory:
     """Class that represents a NUCAPT dataset"""
 
@@ -111,7 +176,6 @@ class APTDataDirectory:
 
         if len(errors) > 0:
             raise DatasetParseException(errors)
-        print(metadata)
         return cls(name, path, metadata['Abstract'], metadata['Authors'],
                    metadata['Date'], metadata['Title'])
 
@@ -154,3 +218,29 @@ class APTDataDirectory:
             yaml.dump(my_metadata, fp)
 
         return my_name, my_path
+
+    def _get_collection_metadata_path(self):
+        """Get path to APT collection method metadata
+
+        :return: str, path
+        """
+        return os.path.join(self.path, 'DataCollection', 'CollectionMetadata.yaml')
+
+    def update_collection_metadata(self, metadata):
+        """Save metadata regarding the APT collection method to disk
+
+        :param metadata: APTDataCollectionMetadata, metadata object
+        :return: path to metadata"""
+
+        metadata_path = self._get_collection_metadata_path()
+        metadata.to_yaml(metadata_path)
+        return metadata_path
+
+    def load_collection_metadata(self):
+        """Load in APT collection method metadata, if available
+
+        :return: APTDataCollectionMetadata if present, else None"""
+
+        if os.path.isfile(self._get_collection_metadata_path()):
+            return APTDataCollectionMetadata.from_yaml(self._get_collection_metadata_path())
+        return None

@@ -3,19 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title>NUCAPT: Create Dataset</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}"/>
-    <script src="{{ url_for('static', filename='js/jquery-3.2.1.min.js')}}"></script>
+    {% include '_includes.html' %}
     <script type = 'text/javascript' language="javascript">
         $(document).ready(function() {
             $("#btn-del-row").hide(); // Remove this button at first
 
-            getNumRows = function() {
+            var getNumRows = function() {
                 return $("#author_table").find("tr").length - 1;
             };
 
             $("#btn-add-row").click(function() {
                 var numRows = getNumRows();
-                console.log(numRows);
 
                 // Make a new form row
                 var tr = document.createElement("tr");

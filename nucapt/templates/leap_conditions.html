@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NUCAPT: Leap Conditions for {{ name }}</title>
+    {% include '_includes.html' %}
+    <script type = 'text/javascript' language="javascript">
+        $(document).ready(function() {
+            // Handle adding/removing metadata rows
+            var getNumRows = function() {
+                return $("#other_table").find("tr").length - 1;
+            };
+            if (getNumRows() == 0) {
+                $("#btn-del-row").hide();
+            }
+
+            $("#btn-add-row").click(function() {
+                var numRows = getNumRows();
+
+                // Make a new form row
+                var tr = document.createElement("tr");
+                ['key', 'value'].forEach(function(e) {
+                    var td = document.createElement("td");
+                    var input = document.createElement("input");
+                    input.id = 'misc-' + numRows + "-" + e;
+                    input.name = input.id;
+                    input.type = 'text';
+                    td.appendChild(input);
+                    tr.appendChild(td)
+                });
+                $("#other_table tr:last").after(tr);
+
+                if (numRows >= 0) {
+                    $("#btn-del-row").show()
+                }
+            });
+
+            $("#btn-del-row").click(function() {
+                var numRows = getNumRows();
+                if (numRows > 0) {
+                    $("#other_table tr:last").remove();
+                }
+                if (numRows == 1) {
+                    $("#btn-del-row").hide();
+                }
+            })
+
+            // Handle showing different metadata fields for different evaporation conditions
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+	    <img src="{{ url_for('static', filename='nucapt.png') }}"/>
+        <h1>Edit LEAP Settings</h1>
+
+        <p>Is this webpage too long? I can make the forms shorter, if needed</p>
+
+        {% if errors is not none %}
+        <h2>Metadata Errors</h2>
+
+        <ol>
+            {% for error in errors %}
+            <li>{{ error | safe }}</li>
+            {% endfor %}
+        </ol>
+        {% endif %}
+
+        <form class='form-horizontal' method=post>
+            <div class="form-group">
+                <label>LEAP Model</label>
+                {{ form.leap_model(class="form-control") | safe }}
+                <span class="help-block">{{ form.leap_model.description }}</span>
+            </div>
+
+
+            <div class="form-group">
+                <label>Evaporation Mode</label>
+                {{ form.evaporation_mode() }}
+                <span class="help-block">{{ form.evaporation_mode.description }}</span>
+
+                <label>Voltage Ratio</label>
+                {{ form.voltage_ratio(class="form-control") }}
+                <span class="help-block">{{ form.voltage_ratio.description }}</span>
+
+                <label>Laser Pulse Energy</label>
+                {{ form.laser_pulse_energy(class="form-control") }} (units)
+                <span class="help-block">{{ form.laser_pulse_energy.description }}</span>
+            </div>
+
+            <div class="form-group">
+                <label>Temperature</label>
+                {{ form.leap_model(class="form-control") | safe }} (units)
+                <span class="help-block">{{ form.temperature.description }}</span>
+            </div>
+
+            <div class="form-group">
+                <label>Detection Rate</label>
+                {{ form.detection_rate(class="form-control") | safe }} (ions/pulse)
+                <span class="help-block">{{ form.detection_rate.description }}</span>
+            </div>
+
+            <div class="form-group">
+                <label>Starting Voltage</label>
+                {{ form.starting_voltage(class="form-control") | safe }} (units)
+                <span class="help-block">{{ form.starting_voltage.description }}</span>
+            </div>
+
+            <div class="form-group">
+                <label>Chamber Pressure</label>
+                {{ form.chamber_pressure(class="form-control") | safe }} (units)
+                <span class="help-block">{{ form.chamber_pressure.description }}</span>
+            </div>
+
+            <label>Other Metadata</label>
+            <table class="table" id="other_table">
+                <tr><th>Title</th><th>Data</th></tr>
+                {% for m in form.misc %}
+                <tr>
+                    <td>{{m.key() | safe}}</td>
+                    <td>{{m.value() | safe}}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            <p>
+                <button type="button" class="btn-sm btn-primary" id="btn-add-row">Add Field</button>
+                <button type="button" class="btn-sm btn-danger" id="btn-del-row">Remove Field</button>
+            </p>
+
+            <p><input type="submit" class="btn-lg btn-primary" value="Update Metadata"/></p>
+        </form>
+
+    </div>
+</body>
+</html>
