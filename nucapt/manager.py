@@ -114,6 +114,29 @@ class APTDataDirectory:
 
         return my_name, my_path
 
+    @classmethod
+    def get_all_datasets(cls, path=data_path):
+        """Load all available datasets in at a certain path
+
+        :param path: str, path to investigate
+        :return: dict
+            key: String, path name
+            value: `APTDataDirectory` if metadata file is valid, `DatasetParseException` otherwise"""
+
+        output = dict()
+        for sub_path in os.listdir(path):
+            if not os.path.isdir(os.path.join(path, sub_path)):
+                continue
+
+            # Get "name" of directory
+            try:
+                output[sub_path] = cls.load_dataset_by_path(os.path.join(path, sub_path))
+            except DatasetParseException as err:
+                output[sub_path] = err
+            except:
+                continue
+        return output
+
     def _get_collection_metadata_path(self):
         """Get path to APT collection method metadata
 

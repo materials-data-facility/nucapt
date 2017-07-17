@@ -14,7 +14,7 @@ def index():
 
 @app.route("/create", methods=['GET', 'POST'])
 def create():
-    """Render the 'create new dataset' form"""
+    """Create a new dataset"""
     form = CreateForm(request.form)
     if request.method == 'POST' and form.validate():
         name, path = APTDataDirectory.initialize_dataset(
@@ -28,6 +28,7 @@ def create():
 
 @app.route("/dataset/<name>")
 def display_dataset(name):
+    """Display metadata about a certain dataset"""
     try:
         dataset = APTDataDirectory.load_dataset_by_name(name)
         errors = None
@@ -39,6 +40,7 @@ def display_dataset(name):
 
 @app.route("/dataset/<name>/leapdata", methods=['GET', 'POST'])
 def leap_metadata(name):
+    """Capture/edit LEAP metadata for a certain dataset"""
 
     # Load in the dataset
     try:
@@ -65,3 +67,12 @@ def leap_metadata(name):
         dataset.update_collection_metadata(metadata)
         return redirect('/dataset/%s'%name)
     return render_template('leap_conditions.html', form=form, name=name)
+
+
+@app.route("/datasets")
+def list_datasets():
+    """List all datasets currently stored at default data path"""
+
+    dir_info = APTDataDirectory.get_all_datasets()
+    dir_valid = dict([(dir, isinstance(info,APTDataDirectory)) for dir,info in dir_info.items()])
+    return render_template("dataset_list.html", dir_info=dir_info, dir_valid=dir_valid)
