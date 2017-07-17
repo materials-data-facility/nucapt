@@ -28,22 +28,18 @@
                     td.appendChild(input);
                     tr.appendChild(td)
                 });
+                var td = document.createElement("td");
+                var btn = document.createElement("button");
+                btn.type = "button";
+                btn.onclick = function() {
+                    this.parentNode.parentNode.remove();
+                };
+                btn.className = "btn-sm btn-danger";
+                btn.innerHTML = "Delete";
+                td.appendChild(btn);
+                tr.appendChild(td);
                 $("#other_table tr:last").after(tr);
-
-                if (numRows >= 0) {
-                    $("#btn-del-row").show()
-                }
             });
-
-            $("#btn-del-row").click(function() {
-                var numRows = getNumRows();
-                if (numRows > 0) {
-                    $("#other_table tr:last").remove();
-                }
-                if (numRows == 1) {
-                    $("#btn-del-row").hide();
-                }
-            })
 
             // Handle showing different metadata fields for different evaporation conditions
         });
@@ -115,17 +111,19 @@
 
             <label>Other Metadata</label>
             <table class="table" id="other_table">
-                <tr><th>Title</th><th>Data</th></tr>
+                <tr><th>Key</th><th>Value</th><th></th></tr>
                 {% for m in form.misc %}
                 <tr>
                     <td>{{m.key() | safe}}</td>
                     <td>{{m.value() | safe}}</td>
+                    <td>
+                        <button type="button" class="btn-sm btn-danger" onclick="this.parentNode.parentNode.remove()">Delete</button>
+                    </td>
                 </tr>
                 {% endfor %}
             </table>
             <p>
                 <button type="button" class="btn-sm btn-primary" id="btn-add-row">Add Field</button>
-                <button type="button" class="btn-sm btn-danger" id="btn-del-row">Remove Field</button>
             </p>
 
             <p><input type="submit" class="btn-lg btn-primary" value="Update Metadata"/></p>
