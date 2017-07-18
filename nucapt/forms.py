@@ -1,4 +1,6 @@
-from wtforms import Form, StringField, TextAreaField, FieldList, FormField, RadioField, FloatField
+from flask_wtf import Form
+from wtforms import StringField, TextAreaField, FieldList, FormField, RadioField, FloatField
+from wtforms.fields.simple import FileField
 from wtforms.validators import NumberRange
 
 
@@ -47,3 +49,26 @@ class LEAPMetadataForm(Form):
     starting_voltage = FloatField('Starting Voltage', description='Starting voltage (units)', default=1)
     chamber_pressure = FloatField('Chamber Vacuum Pressure', description='Chamber pressure (torr)', default=1)
     misc = FieldList(FormField(KeyValueForm), 'Other Metadata', description='Anything else that is pertinent')
+
+
+class LEAPSampleDescriptionForm(Form):
+    """Description of a LEAP sample"""
+
+    sample_name = StringField('Sample Name', description='Name for sample')
+    sample_description = TextAreaField('Sample Description', description='Longer-form description of the sample')
+    metadata = FieldList(FormField(KeyValueForm), 'Sample Metadata',
+                         description='Structured metadata about materials. Use to make indexing easier')
+
+class LEAPRawDataForm(Form):
+    """Form to collect raw data files"""
+
+    rhit_file = FileField('RHIT file')
+    rrng_file = FileField('RRNG file')
+
+
+class LEAPSampleForm(Form):
+    """Form to get data for a new sample"""
+
+    sample_form = FormField(LEAPSampleDescriptionForm, description="Metadata for the ")
+    metadata_form = FormField(LEAPMetadataForm, description="Metadata for data collection method")
+    file_form = FormField(LEAPRawDataForm, description="Raw data files")

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>NUCAPT: Create Dataset</title>
     {% include '_includes.html' %}
+    {% from '_form_utils.html' import render_field %}
     <script type = 'text/javascript' language="javascript">
         $(document).ready(function() {
             $("#btn-del-row").hide(); // Remove this button at first
@@ -53,11 +54,11 @@
         <form class='form-horizontal' method=post>
             <h4>Title</h4>
             <div class="col-10">
-                {{ form.title(class="form-control") | safe }}
+                {{ render_field(form.title) }}
             </div>
 
             <h4>Abstract</h4>
-            {{ form.abstract(class="form-control", rows="4") | safe }}
+            {{ render_field(form.abstract) }}
 
             <h4>Authors</h4>
             <table class="table" id="author_table">

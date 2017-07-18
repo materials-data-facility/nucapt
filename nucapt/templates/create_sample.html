@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NUCAPT: Create Sample for {{ name }}</title>
+    {% include '_includes.html' %}
+    {% import '_leap_sample_forms.html' as mf %}
+    {% from '_form_utils.html' import render_field %}
+    <script src="{{ url_for('static', filename='js/util.js') }}"></script>
+    <script>
+        $(document).ready(function () {
+            keyValueTable("other-table", "metadata_form-misc");
+            keyValueTable("description_metadata", "sample_form-metadata");
+        });
+    </script>
+</head>
+<body>
+<div class="container" enctype="multipart/form-data">
+    <img src="{{ url_for('static', filename='nucapt.png') }}"/>
+    <h1>Create Sample for {{ name }}</h1>
+
+    <p>This webform adds a new sample to an existing dataset. You need specify how you collected this sample,
+        as well as upload the raw data files. To make your data more usable by others (or even yourself in the future),
+        you should also describe your sample.</p>
+
+    <form class='form-horizontal' method=post>
+        {{ form.csrf_token() | safe }}
+        <h2>Sample Information</h2>
+
+        {{ mf.sample_form(form.sample_form) }}
+
+        <h2>Data Collection Metadata</h2>
+
+        <p>Metadata about how a sample was collected.</p>
+        {{ mf.leap_metadata_form(form.metadata_form) }}
+
+        <h2>Raw Data Files</h2>
+        <p>Unprocessed data files for this sample</p>
+
+        {{ mf.file_form(form.file_form) }}
+
+        <p><input type="submit" class="btn-lg btn-primary" value="Create Sample"/></p>
+    </form>
+
+</div>
+</body>
+</html>

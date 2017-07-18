@@ -1,10 +1,8 @@
 """Operations relating to managing data folders on NUCAPT servers"""
 
 import os
-import shutil
+from abc import abstractmethod, ABCMeta
 from datetime import date
-
-import yaml
 
 import nucapt
 from nucapt.exceptions import DatasetParseException
@@ -16,7 +14,24 @@ template_path = os.path.join(module_dir, '..', 'template_directory')
 data_path = os.path.join(module_dir, '..', 'working_directory')
 
 
-class APTDataDirectory:
+class DataDirectory(metaclass=ABCMeta):
+    """Class to represent a set of data stored on this server"""
+    def __init__(self, name, path):
+        self.name = name
+        self.path = path
+
+    @classmethod
+    @abstractmethod
+    def load_dataset_by_path(cls, path):
+        """Read in dataset from directory
+
+        :param path: str, Path to APT dataset
+        :param name: str, Name of dataset. if not defined, inferred from path
+        :return: APTDataDirectory, APT Dataset"""
+        pass
+
+
+class APTDataDirectory(DataDirectory):
     """Class that represents a NUCAPT dataset"""
 
     def __init__(self, name, path, abstract, authors, dates, title):
@@ -27,9 +42,7 @@ class APTDataDirectory:
         :param authors: list, dicts describing authors
         :param abstract: str, abstract describing dataset
         :param dates: dict, 'creation' and 'publishing' date"""
-
-        self.name = name
-        self.path = path
+        super(APTDataDirectory, self).__init__(name, path)
         self.abstract = abstract
         self.authors = authors
         self.dates = dates
@@ -46,20 +59,18 @@ class APTDataDirectory:
         return APTDataDirectory.load_dataset_by_path(my_path)
 
     @classmethod
-    def load_dataset_by_path(cls, path, name=None):
+    def load_dataset_by_path(cls, path):
         """Read in dataset from directory
 
         :param path: str, Path to APT dataset
-        :param name: str, Name of dataset. if not defined, inferred from path
         :return: APTDataDirectory, APT Dataset"""
 
         # Check if path does not exist
         if not os.path.isdir(path):
             raise DatasetParseException('No dataset at: ' + path)
 
-        # Infer name, if need be
-        if name is None:
-            name = os.path.basename(path)
+        # Infer name
+        name = os.path.basename(path)
 
         # Read in the general metadata
         metadata_file = os.path.join(path, 'GeneralMetadata.yml')
@@ -135,12 +146,35 @@ class APTDataDirectory:
                 continue
         return output
 
+
+class APTSampleDirectory(DataDirectory):
+    """Holds data associated with a certain sample"""
+
+    def __init__(self, dataset_name, sample_name, path):
+        """Do not use. Use `load_dataset_by_path` or `load_dataset_by_name`"""
+        super(APTSampleDirectory, self).__init__('%s_%s'%(dataset_name, sample_name), path)
+        self.dataset_name = dataset_name
+        self.sample_name = sample_name
+
+    @classmethod
+    def load_dataset_by_path(cls, path):
+        # Get the names
+        words = os.path.split(path)
+        sample_name = words[-1]
+        dataset_name = words[-2]
+        return cls(dataset_name, sample_name, path)
+
+    @classmethod
+    def create_sample(cls, form):
+        """Generate a new sample given a HTML form"""
+        pass
+
     def _get_collection_metadata_path(self):
         """Get path to APT collection method metadata
 
         :return: str, path
         """
-        return os.path.join(self.path, 'DataCollection', 'CollectionMetadata.yaml')
+        return os.path.join(self.path, 'CollectionMetadata.yaml')
 
     def update_collection_metadata(self, metadata):
         """Save metadata regarding the APT collection method to disk
