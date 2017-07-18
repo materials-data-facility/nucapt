@@ -9,11 +9,6 @@ from nucapt.exceptions import DatasetParseException
 module_dir = os.path.dirname(os.path.abspath(__file__))
 schema_path = os.path.join(module_dir, 'schemas')
 
-expected_apt_metadata_fields = {
-    'leap_model', 'evaporation_mode', 'voltage_ratio', 'laser_pulse_energy','laser_frequency',
-    'temperature', 'detection_rate', 'starting_voltage', 'chamber_pressure', 'misc'
-}
-
 
 class MetadataHolder:
     """General class for files that hold metadata"""

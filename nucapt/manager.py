@@ -62,13 +62,11 @@ class APTDataDirectory:
             name = os.path.basename(path)
 
         # Read in the general metadata
-        metadata_dir = os.path.join(path, 'General')
-        metadata_file = os.path.join(metadata_dir, 'GeneralMetadata.yml')
+        metadata_file = os.path.join(path, 'GeneralMetadata.yml')
         metadata = GeneralMetadata.from_yaml(metadata_file)
         is_valid, errors = metadata.validate_data()
 
-        # Get the, now validated, metadata out of
-
+        # Get the, now validated, metadata out of the object and instantiate the data
         if len(errors) > 0:
             raise DatasetParseException(errors)
         return cls(name, path, metadata.metadata['abstract'], metadata['authors'],
@@ -81,6 +79,7 @@ class APTDataDirectory:
         :param title: str, title of dataset
         :param authors: list of dicts, author names.
             The dict should contain keys "first_name", "last_name", "affiliation"
+        :param abstract: str, abstract describing this dataset
         :return:
             str, name of dataset
             path, path to data
@@ -90,17 +89,17 @@ class APTDataDirectory:
         first_author = authors[0]["last_name"]
         index = 0
         while True:
-            my_name = '%s_%s_%d'%(date.today().strftime("%d%b%y"), first_author, index)
+            my_name = '%s_%s_%d' % (date.today().strftime("%d%b%y"), first_author, index)
             if not os.path.exists(os.path.join(data_path, my_name)):
                 break
             index += 1
 
-        # Copy the template directory to this path
+        # Make a new directory for this dataset
         my_path = os.path.abspath(os.path.join(data_path, my_name))
-        shutil.copytree(template_path, my_path)
+        os.makedirs(my_path)
 
         # Generate the dataset metadata
-        my_metadata = dict(
+        my_metadata = GeneralMetadata(
             abstract=abstract,
             title=title,
             authors=authors,
@@ -108,9 +107,8 @@ class APTDataDirectory:
         )
 
         # Write to disk
-        metadata_path = os.path.join(my_path, 'General', 'GeneralMetadata.yml')
-        with open(metadata_path, 'w') as fp:
-            yaml.dump(my_metadata, fp)
+        metadata_path = os.path.join(my_path, 'GeneralMetadata.yml')
+        my_metadata.to_yaml(metadata_path)
 
         return my_name, my_path
 
