@@ -1,9 +1,9 @@
 from nucapt import app
 from flask import render_template, request, redirect
 from nucapt.forms import CreateForm, LEAPSampleForm
-from nucapt.manager import APTDataDirectory
+from nucapt.manager import APTDataDirectory, APTSampleDirectory
 from nucapt.exceptions import DatasetParseException
-from nucapt.metadata import APTDataCollectionMetadata
+from nucapt.metadata import APTSampleGeneralMetadata
 
 
 @app.route("/")
@@ -38,6 +38,15 @@ def display_dataset(name):
     return render_template('dataset.html', name=name, dataset=dataset, errors=errors)
 
 
+@app.route("/datasets")
+def list_datasets():
+    """List all datasets currently stored at default data path"""
+
+    dir_info = APTDataDirectory.get_all_datasets()
+    dir_valid = dict([(dir, isinstance(info,APTDataDirectory)) for dir,info in dir_info.items()])
+    return render_template("dataset_list.html", dir_info=dir_info, dir_valid=dir_valid)
+
+
 @app.route("/dataset/<name>/sample/create", methods=['GET', 'POST'])
 def create_sample(name):
     """Create a new sample for a dataset"""
@@ -49,30 +58,36 @@ def create_sample(name):
         return redirect('/dataset/' + name)
 
     # Initialize form data
-    # if len(request.form) is 0:
-    #     try:
-    #         metadata = dataset.load_collection_metadata()
-    #     except DatasetParseException as err:
-    #         return render_template('create_sample.html', form=None, name=name, errors=err.errors)
-    #     form = LEAPMetadataForm(**metadata.metadata) if metadata is not None else LEAPMetadataForm(request.form)
-    # else:
     form = LEAPSampleForm()
 
-    # Update values, if need be
-    # if request.method == 'POST' and form.validate():
-    #     try:
-    #         metadata = APTDataCollectionMetadata.from_form(form)
-    #     except DatasetParseException as err:
-    #         return render_template('create_sample.html', form=form, name=name, errors=err.errors)
-    #     dataset.update_collection_metadata(metadata)
-    #     return redirect('/dataset/%s'%name)
+    errors = None
+    if form.validate_on_submit():
+        # attempt to validate the metadata
+        try:
+            sample_name = APTSampleDirectory.create_sample(name, form)
+        except DatasetParseException as err:
+            return render_template('create_sample.html', form=form, name=name, errors=err.errors)
+        return redirect("/dataset/%s/sample/%s"%(name, sample_name))
+
     return render_template('create_sample.html', form=form, name=name, errors=None)
 
 
-@app.route("/datasets")
-def list_datasets():
-    """List all datasets currently stored at default data path"""
+@app.route("/dataset/<dataset_name>/sample/<sample_name>")
+def view_sample(dataset_name, sample_name):
+    """View metadata about sample"""
 
-    dir_info = APTDataDirectory.get_all_datasets()
-    dir_valid = dict([(dir, isinstance(info,APTDataDirectory)) for dir,info in dir_info.items()])
-    return render_template("dataset_list.html", dir_info=dir_info, dir_valid=dir_valid)
+    # Load in the sample by name
+    sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
+
+    # Load in the sample information
+    sample_metadata = None
+    collection_metadata = None
+    errors = None
+    try:
+        sample_metadata = sample.load_sample_information()
+        collection_metadata = sample.load_collection_metadata()
+    except DatasetParseException as err:
+        errors = err
+    return render_template('sample.html', dataset_name=dataset_name, sample=sample,
+                           sample_name=sample_name, sample_metadata=sample_metadata,
+                           collection_metadata=collection_metadata, errors=errors)

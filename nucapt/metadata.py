@@ -50,6 +50,8 @@ class MetadataHolder:
         :param form: Form, webpage form"""
 
         metadata = form.data
+        if 'csrf_token' in metadata:
+            del metadata['csrf_token']
         return cls(**metadata)
 
     @classmethod
@@ -86,7 +88,14 @@ class APTDataCollectionMetadata(MetadataHolder):
 
 
 class GeneralMetadata(MetadataHolder):
-    """Class to hold general metadata about dataste"""
+    """Class to hold general metadata about a dataset"""
 
     def _get_schema_path(self):
         return os.path.join(schema_path, "GeneralMetadata.json")
+
+
+class APTSampleGeneralMetadata(MetadataHolder):
+    """Class to hold general metadata about a single APT sample"""
+
+    def _get_schema_path(self):
+        return os.path.join(schema_path, "SampleMetadata.json")

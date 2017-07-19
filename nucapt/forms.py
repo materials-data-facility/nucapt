@@ -59,6 +59,7 @@ class LEAPSampleDescriptionForm(Form):
     metadata = FieldList(FormField(KeyValueForm), 'Sample Metadata',
                          description='Structured metadata about materials. Use to make indexing easier')
 
+
 class LEAPRawDataForm(Form):
     """Form to collect raw data files"""
 
@@ -70,5 +71,5 @@ class LEAPSampleForm(Form):
     """Form to get data for a new sample"""
 
     sample_form = FormField(LEAPSampleDescriptionForm, description="Metadata for the ")
-    metadata_form = FormField(LEAPMetadataForm, description="Metadata for data collection method")
+    collection_form = FormField(LEAPMetadataForm, description="Metadata for data collection method")
     file_form = FormField(LEAPRawDataForm, description="Raw data files")

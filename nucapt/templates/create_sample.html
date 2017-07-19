@@ -23,6 +23,16 @@
         as well as upload the raw data files. To make your data more usable by others (or even yourself in the future),
         you should also describe your sample.</p>
 
+    {% if errors is not none %}
+    <h2>Metadata Errors</h2>
+
+    <ol>
+        {% for error in errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+    </ol>
+    {% endif %}
+
     <form class='form-horizontal' method=post>
         {{ form.csrf_token() | safe }}
         <h2>Sample Information</h2>
@@ -32,7 +42,7 @@
         <h2>Data Collection Metadata</h2>
 
         <p>Metadata about how a sample was collected.</p>
-        {{ mf.leap_metadata_form(form.metadata_form) }}
+        {{ mf.leap_metadata_form(form.collection_form) }}
 
         <h2>Raw Data Files</h2>
         <p>Unprocessed data files for this sample</p>

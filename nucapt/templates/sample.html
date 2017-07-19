@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NUCAPT: Sample {{ sample_name }}</title>
+    {% include '_includes.html' %}
+    <script type = 'text/javascript' language="javascript">
+    </script>
+</head>
+<body>
+    <div class="container">
+	    <img src="{{ url_for('static', filename='nucapt.png') }}"/>
+        <h1>Dataset {{ dataset_name }}: Sample {{ sample_name }}</h1>
+
+        {% if errors is not none %}
+        <h2>Sample Parsing Errors</h2>
+
+        <ul>
+            {% for error in errors %}
+            <li>{{ error | safe }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if sample is not none %}
+
+        <p>Location: {{ sample.path }}</p>
+
+        <h2>Sample Information</h2>
+
+        <p>{{ sample_metadata['sample_description'] | safe }}</p>
+
+        {% if sample_metadata['metadata'] | length > 0 %}
+        <h3>Metadata</h3>
+
+        {% for key,value in sample_metadata.metadata.metadata %}
+        <p><label>{{key| safe}}</label>: {{ value| safe }}</p>
+        {% endfor %}
+        {% endif %}
+        {% endif %}
+
+        <h2>Actions</h2>
+
+        <p>TBD</p>
+
+        <h2>Files</h2>
+
+        <p>TBD</p>
+    </div>
+</body>
+</html>
