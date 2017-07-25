@@ -16,7 +16,8 @@
 </head>
 <body>
 <div class="container" enctype="multipart/form-data">
-    <img src="{{ url_for('static', filename='nucapt.png') }}"/>
+    {% from "_utils.html" import make_header %}
+    {{ make_header([(name,'/dataset/' + name), ('Create Sample', '/dataset/%s/sample/create'%name)]) }}
     <h1>Create Sample for {{ name }}</h1>
 
     <p>This webform adds a new sample to an existing dataset. You need specify how you collected this sample,

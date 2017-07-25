@@ -9,7 +9,8 @@
 </head>
 <body>
     <div class="container">
-	    <img src="{{ url_for('static', filename='nucapt.png') }}"/>
+        {% from "_utils.html" import make_header %}
+        {{ make_header([(name,'/dataset/' + name )]) }}
         <h1>Dataset {{ name }}</h1>
 
         {% if errors is not none %}
