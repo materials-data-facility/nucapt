@@ -1,14 +1,14 @@
 """Operations relating to managing data folders on NUCAPT servers"""
 
 import os
-import shutil
+from abc import abstractmethod, ABCMeta
 from datetime import date
-
-import yaml
 
 import nucapt
 from nucapt.exceptions import DatasetParseException
-from nucapt.metadata import APTDataCollectionMetadata, GeneralMetadata
+from nucapt.metadata import APTDataCollectionMetadata, GeneralMetadata, APTSampleGeneralMetadata
+
+from glob import glob
 
 # Key variables
 module_dir = os.path.dirname(os.path.abspath(nucapt.__file__))
@@ -16,7 +16,29 @@ template_path = os.path.join(module_dir, '..', 'template_directory')
 data_path = os.path.join(module_dir, '..', 'working_directory')
 
 
-class APTDataDirectory:
+# Glob
+
+
+class DataDirectory(metaclass=ABCMeta):
+    """Class to represent a set of data stored on this server"""
+    def __init__(self, name, path):
+        if not os.path.isdir(path):
+            raise DatasetParseException('No such path: ' + path)
+        self.name = name
+        self.path = os.path.abspath(path)
+
+    @classmethod
+    @abstractmethod
+    def load_dataset_by_path(cls, path):
+        """Read in dataset from directory
+
+        :param path: str, Path to APT dataset
+        :param name: str, Name of dataset. if not defined, inferred from path
+        :return: APTDataDirectory, APT Dataset"""
+        pass
+
+
+class APTDataDirectory(DataDirectory):
     """Class that represents a NUCAPT dataset"""
 
     def __init__(self, name, path, abstract, authors, dates, title):
@@ -27,9 +49,7 @@ class APTDataDirectory:
         :param authors: list, dicts describing authors
         :param abstract: str, abstract describing dataset
         :param dates: dict, 'creation' and 'publishing' date"""
-
-        self.name = name
-        self.path = path
+        super(APTDataDirectory, self).__init__(name, path)
         self.abstract = abstract
         self.authors = authors
         self.dates = dates
@@ -46,29 +66,20 @@ class APTDataDirectory:
         return APTDataDirectory.load_dataset_by_path(my_path)
 
     @classmethod
-    def load_dataset_by_path(cls, path, name=None):
+    def load_dataset_by_path(cls, path):
         """Read in dataset from directory
 
         :param path: str, Path to APT dataset
-        :param name: str, Name of dataset. if not defined, inferred from path
         :return: APTDataDirectory, APT Dataset"""
-
-        # Check if path does not exist
-        if not os.path.isdir(path):
-            raise DatasetParseException('No dataset at: ' + path)
-
-        # Infer name, if need be
-        if name is None:
-            name = os.path.basename(path)
+        # Infer name
+        name = os.path.basename(path)
 
         # Read in the general metadata
-        metadata_dir = os.path.join(path, 'General')
-        metadata_file = os.path.join(metadata_dir, 'GeneralMetadata.yml')
+        metadata_file = os.path.join(path, 'GeneralMetadata.yml')
         metadata = GeneralMetadata.from_yaml(metadata_file)
         is_valid, errors = metadata.validate_data()
 
-        # Get the, now validated, metadata out of
-
+        # Get the, now validated, metadata out of the object and instantiate the data
         if len(errors) > 0:
             raise DatasetParseException(errors)
         return cls(name, path, metadata.metadata['abstract'], metadata['authors'],
@@ -81,6 +92,7 @@ class APTDataDirectory:
         :param title: str, title of dataset
         :param authors: list of dicts, author names.
             The dict should contain keys "first_name", "last_name", "affiliation"
+        :param abstract: str, abstract describing this dataset
         :return:
             str, name of dataset
             path, path to data
@@ -90,17 +102,17 @@ class APTDataDirectory:
         first_author = authors[0]["last_name"]
         index = 0
         while True:
-            my_name = '%s_%s_%d'%(date.today().strftime("%d%b%y"), first_author, index)
+            my_name = '%s_%s_%d' % (date.today().strftime("%d%b%y"), first_author, index)
             if not os.path.exists(os.path.join(data_path, my_name)):
                 break
             index += 1
 
-        # Copy the template directory to this path
+        # Make a new directory for this dataset
         my_path = os.path.abspath(os.path.join(data_path, my_name))
-        shutil.copytree(template_path, my_path)
+        os.makedirs(my_path)
 
         # Generate the dataset metadata
-        my_metadata = dict(
+        my_metadata = GeneralMetadata(
             abstract=abstract,
             title=title,
             authors=authors,
@@ -108,9 +120,8 @@ class APTDataDirectory:
         )
 
         # Write to disk
-        metadata_path = os.path.join(my_path, 'General', 'GeneralMetadata.yml')
-        with open(metadata_path, 'w') as fp:
-            yaml.dump(my_metadata, fp)
+        metadata_path = os.path.join(my_path, 'GeneralMetadata.yml')
+        my_metadata.to_yaml(metadata_path)
 
         return my_name, my_path
 
@@ -137,18 +148,130 @@ class APTDataDirectory:
                 continue
         return output
 
+    def list_samples(self):
+        """Get the list of samples for this dataset
+
+        :return:
+            - list of APTSampleDirectory, names of samples
+            - errors: List of errors """
+
+        # Find all subdirectories that contain "SampleInformation.yaml"
+        output = []
+        errors = []
+        for file in glob("%s/*/SampleInformation.yaml" % self.path):
+            try:
+                output.append(APTSampleDirectory.load_dataset_by_path(os.path.dirname(file)))
+            except DatasetParseException as exc:
+                errors.extend(exc.errors)
+        return output, errors
+
+
+class APTSampleDirectory(DataDirectory):
+    """Holds data associated with a certain sample"""
+
+    def __init__(self, dataset_name, sample_name, path):
+        """Do not use. Use `load_dataset_by_path` or `load_dataset_by_name`"""
+        super(APTSampleDirectory, self).__init__('%s_%s'%(dataset_name, sample_name), path)
+        self.dataset_name = dataset_name
+        self.sample_name = sample_name
+
+    @classmethod
+    def load_dataset_by_path(cls, path):
+        # Get the names
+        words = os.path.split(path)
+        sample_name = words[-1]
+        dataset_name = words[-2]
+        return cls(dataset_name, sample_name, path)
+
+    @classmethod
+    def load_dataset_by_name(cls, dataset_name, sample_name):
+        """Load a sample by name
+
+        :param dataset_name: str, name of dataset containing sample
+        :param sample_name: str, name of sample
+        :return: APTSampleDirectory, desired sample
+        """
+
+        path = os.path.join(data_path, dataset_name, sample_name)
+        return APTSampleDirectory.load_dataset_by_path(path)
+
+    @classmethod
+    def create_sample(cls, dataset_name, form):
+        """Generate a new sample given HTML form data
+
+        :param dataset_name: str, Name of dataset that will contain this new sample
+        :param form: LEAPSanmpleForm, user request
+        :return: str, sample name
+        """
+
+        # Parse the metadata
+        general = APTSampleGeneralMetadata.from_form(form.sample_form)
+        collection = APTDataCollectionMetadata.from_form(form.collection_form)
+
+        # Create a directory and save metadata in it
+        sample_name = form.sample_name.data
+        path = os.path.join(data_path, dataset_name, sample_name)
+
+        #   Check if that path exists
+        if os.path.isdir(path):
+            raise DatasetParseException('Sample %s already exists for dataset %s'%(sample_name, dataset_name))
+        os.mkdir(path)
+
+        # Instantiate the object
+        sample = cls(dataset_name, sample_name, path)
+
+        general.to_yaml(sample._get_sample_information_path())
+        collection.to_yaml(sample._get_collection_metadata_path())
+
+        # Download the files
+        # TBD
+
+        return sample_name
+
+    def _get_sample_information_path(self):
+        """Get path to APT sample information
+
+        :return: str, path
+        """
+        return os.path.join(self.path, 'SampleInformation.yaml')
+
+    def update_sample_information(self, form):
+        """Save sample information to disk
+
+        :param form: APTSampleDescriptionForm, metadata object
+        :return: path to metadata"""
+
+        # Validate the form
+        metadata = APTSampleGeneralMetadata.from_form(form)
+
+        # Save it
+        metadata_path = self._get_sample_information_path()
+        metadata.to_yaml(metadata_path)
+        return metadata_path
+
+    def load_sample_information(self):
+        """Load in APT collection method metadata, if available
+
+        :return: APTDataCollectionMetadata if present, else None"""
+
+        if os.path.isfile(self._get_sample_information_path()):
+            return APTSampleGeneralMetadata.from_yaml(self._get_sample_information_path())
+        return None
+
     def _get_collection_metadata_path(self):
         """Get path to APT collection method metadata
 
         :return: str, path
         """
-        return os.path.join(self.path, 'DataCollection', 'CollectionMetadata.yaml')
+        return os.path.join(self.path, 'CollectionMethod.yaml')
 
-    def update_collection_metadata(self, metadata):
+    def update_collection_metadata(self, form):
         """Save metadata regarding the APT collection method to disk
 
         :param metadata: APTDataCollectionMetadata, metadata object
         :return: path to metadata"""
+
+        metadata = APTDataCollectionMetadata.from_form(form)
 
         metadata_path = self._get_collection_metadata_path()
         metadata.to_yaml(metadata_path)

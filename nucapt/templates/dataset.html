@@ -9,7 +9,8 @@
 </head>
 <body>
     <div class="container">
-	    <img src="{{ url_for('static', filename='nucapt.png') }}"/>
+        {% from "_utils.html" import make_header %}
+        {{ make_header([(name,'/dataset/' + name )]) }}
         <h1>Dataset {{ name }}</h1>
 
         {% if errors is not none %}
@@ -45,10 +46,24 @@
         {% endfor %}
         {% endif %}
 
+        <h2>Samples</h2>
+
+        <p>A listing the samples currently associated with this dataset</p>
+
+        <table class="table">
+            <tr><th>Sample</th><th>Title</th><th>Actions</th></tr>
+            {% for sample in samples %}
+            <tr>
+                <td>{{ sample['sample_name'] | safe }}</td>
+                <td>{{ sample.load_sample_information()['sample_title'] | safe }}</td>
+                <td><a href="{{ name }}/sample/{{ sample['sample_name'] }}">View</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+
         <h2>Actions</h2>
 
-        <h3><a href="/dataset/{{name}}/leapdata">Edit Collection Method Metadata</a></h3>
-
+        <h3><a href="/dataset/{{name}}/sample/create">Add Sample</a></h3>
 
     </div>
 </body>

@@ -1,0 +1,17 @@
+{% macro make_header(tags, urls) -%}
+    <header id="masthead">
+        <nav id="navbar" class="navbar" role="navigation">
+            <div class="container">
+                <div class="navbar-header">
+                    <ol class="breadcrumb">
+                        <li><a href="/">NUCAPT Pub</a></li>
+                        {% for tag,url in tags %}
+                        <li><a href="{{ url }}">{{ tag }}</a></li>
+                        {% endfor %}
+                        <li></li>
+                    </ol>
+                </div>
+            </div>
+        </nav>
+    </header>
+{%- endmacro %}
