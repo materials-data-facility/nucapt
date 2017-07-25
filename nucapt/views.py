@@ -1,6 +1,6 @@
 from nucapt import app
 from flask import render_template, request, redirect
-from nucapt.forms import CreateForm, LEAPSampleForm, LEAPCollectionMethodForm, LEAPSampleDescriptionForm
+from nucapt.forms import CreateForm, APTSampleForm, APTCollectionMethodForm, APTSampleDescriptionForm
 from nucapt.manager import APTDataDirectory, APTSampleDirectory
 from nucapt.exceptions import DatasetParseException
 from nucapt.metadata import APTSampleGeneralMetadata
@@ -58,7 +58,7 @@ def create_sample(name):
         return redirect('/dataset/' + name)
 
     # Initialize form data
-    form = LEAPSampleForm(request.form)
+    form = APTSampleForm(request.form)
 
     if request.method == 'POST' and form.validate():
         # attempt to validate the metadata
@@ -107,7 +107,7 @@ def edit_sample_information(dataset_name, sample_name):
 
     if request.method == 'POST':
         # Validate the form
-        form = LEAPSampleDescriptionForm(request.form)
+        form = APTSampleDescriptionForm(request.form)
         errors = None
         if form.validate():
             try:
@@ -125,9 +125,9 @@ def edit_sample_information(dataset_name, sample_name):
         errors = None
         try:
             sample_metadata = sample.load_sample_information()
-            form = LEAPSampleDescriptionForm(**sample_metadata.metadata)
+            form = APTSampleDescriptionForm(**sample_metadata.metadata)
         except DatasetParseException as err:
-            form = LEAPCollectionMethodForm()
+            form = APTCollectionMethodForm()
             errors = err
         return render_template('sample_generalform.html', dataset_name=dataset_name, sample=sample,
                                sample_name=sample_name, form=form, errors=errors)

@@ -24,7 +24,7 @@ class CreateForm(Form):
                         description='People associated with this dataset')
 
 
-class LEAPCollectionMethodForm(Form):
+class APTCollectionMethodForm(Form):
     """Form to capture leap metadata
 
     LW 13Jul17: We should select real default values to these"""
@@ -50,7 +50,7 @@ class LEAPCollectionMethodForm(Form):
     misc = FieldList(FormField(KeyValueForm), 'Other Metadata', description='Anything else that is pertinent')
 
 
-class LEAPSampleDescriptionForm(Form):
+class APTSampleDescriptionForm(Form):
     """Description of a LEAP sample"""
 
     sample_title = StringField('Sample Title', description='Short description of sample')
@@ -59,18 +59,18 @@ class LEAPSampleDescriptionForm(Form):
                          description='Structured metadata about materials. Use to make indexing easier')
 
 
-class LEAPRawDataForm(Form):
+class APTRawDataForm(Form):
     """Form to collect raw data files"""
 
     rhit_file = FileField('RHIT file')
     rrng_file = FileField('RRNG file')
 
 
-class LEAPSampleForm(Form):
+class APTSampleForm(Form):
     """Form to get data for a new sample"""
 
     sample_name = StringField('Sample Name', description='Name of sample directory. Cannot contain whitespace.',
                               validators=[Regexp('[\\w0-9]+')])
-    sample_form = FormField(LEAPSampleDescriptionForm, description="Metadata for the ")
-    collection_form = FormField(LEAPCollectionMethodForm, description="Metadata for data collection method")
-    file_form = FormField(LEAPRawDataForm, description="Raw data files")
+    sample_form = FormField(APTSampleDescriptionForm, description="Metadata for the ")
+    collection_form = FormField(APTCollectionMethodForm, description="Metadata for data collection method")
+    file_form = FormField(APTRawDataForm, description="Raw data files")
