@@ -13,7 +13,7 @@
         {{ make_header([(name,'/dataset/' + name )]) }}
         <h1>Dataset {{ name }}</h1>
 
-        {% if errors is not none %}
+        {% if errors | length > 0 %}
         <h2>Dataset Parsing Errors</h2>
 
         <ul>
