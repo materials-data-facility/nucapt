@@ -3,7 +3,6 @@ from flask import render_template, request, redirect
 from nucapt.forms import CreateForm, APTSampleForm, APTCollectionMethodForm, APTSampleDescriptionForm
 from nucapt.manager import APTDataDirectory, APTSampleDirectory
 from nucapt.exceptions import DatasetParseException
-from nucapt.metadata import APTSampleGeneralMetadata
 
 
 @app.route("/")
@@ -29,13 +28,15 @@ def create():
 @app.route("/dataset/<name>")
 def display_dataset(name):
     """Display metadata about a certain dataset"""
+    errors = []
     try:
         dataset = APTDataDirectory.load_dataset_by_name(name)
-        errors = None
     except DatasetParseException as exc:
         dataset = None
         errors = exc.errors
-    return render_template('dataset.html', name=name, dataset=dataset, errors=errors)
+    samples, sample_errors = dataset.list_samples()
+    errors.extend(sample_errors)
+    return render_template('dataset.html', name=name, dataset=dataset, samples=samples, errors=errors)
 
 
 @app.route("/datasets")

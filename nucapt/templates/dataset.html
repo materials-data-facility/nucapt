@@ -48,14 +48,22 @@
 
         <h2>Samples</h2>
 
-        {% for sample in dataset.list_samples() %}
-        <h3><a href="/dataset/{{ name }}/sample/{{ sample }}">{{ sample | safe }}</a></h3>
-        {% endfor %}
+        <p>A listing the samples currently associated with this dataset</p>
+
+        <table class="table">
+            <tr><th>Sample</th><th>Title</th><th>Actions</th></tr>
+            {% for sample in samples %}
+            <tr>
+                <td>{{ sample['sample_name'] | safe }}</td>
+                <td>{{ sample.load_sample_information()['sample_title'] | safe }}</td>
+                <td><a href="{{ name }}/sample/{{ sample['sample_name'] }}">View</a></td>
+            </tr>
+            {% endfor %}
+        </table>
 
         <h2>Actions</h2>
 
         <h3><a href="/dataset/{{name}}/sample/create">Add Sample</a></h3>
-
 
     </div>
 </body>

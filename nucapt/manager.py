@@ -151,10 +151,19 @@ class APTDataDirectory(DataDirectory):
     def list_samples(self):
         """Get the list of samples for this dataset
 
-        :return: list of str, names of samples"""
+        :return:
+            - list of APTSampleDirectory, names of samples
+            - errors: List of errors """
 
         # Find all subdirectories that contain "SampleInformation.yaml"
-        return [ os.path.basename(os.path.dirname(file)) for file in glob("%s/*/SampleInformation.yaml"%self.path) ]
+        output = []
+        errors = []
+        for file in glob("%s/*/SampleInformation.yaml" % self.path):
+            try:
+                output.append(APTSampleDirectory.load_dataset_by_path(os.path.dirname(file)))
+            except DatasetParseException as exc:
+                errors.extend(exc.errors)
+        return output, errors
 
 
 class APTSampleDirectory(DataDirectory):
