@@ -105,29 +105,68 @@ def edit_sample_information(dataset_name, sample_name):
     except DatasetParseException as exc:
         return redirect("/dataset/%s/sample/%s"%(dataset_name, sample_name))
 
+    # Load in the metadata
+    edit_page = 'sample_generalform.html'
+    my_form = APTSampleDescriptionForm
+    sample_metadata = sample.load_sample_information()
+    updated_func = sample.update_sample_information
+
+    return edit_sample_metadata(dataset_name, edit_page, my_form, sample, sample_metadata, sample_name, updated_func)
+
+
+@app.route("/dataset/<dataset_name>/sample/<sample_name>/edit_collection", methods=['GET', 'POST'])
+def edit_collection_information(dataset_name, sample_name):
+    """View metadata about sample"""
+
+    # Load in the sample by name
+    try:
+        sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
+    except DatasetParseException as exc:
+        return redirect("/dataset/%s/sample/%s"%(dataset_name, sample_name))
+
+    # Load in the metadata
+    edit_page = 'sample_collectionForm.html'
+    my_form = APTCollectionMethodForm
+    sample_metadata = sample.load_collection_metadata()
+    updated_func = sample.update_collection_metadata
+
+    return edit_sample_metadata(dataset_name, edit_page, my_form, sample, sample_metadata, sample_name, updated_func)
+
+
+def edit_sample_metadata(dataset_name, edit_page, my_form, sample, sample_metadata, sample_name, update_func):
+    """Utility function for editing sample metadata
+
+    :param dataset_name: str, Name of dataset
+    :param edit_page: str, Name of page to render
+    :param my_form: cls, Form class
+    :param sample: APTSampleDirectory, Object describing this sample
+    :param sample_metadata: dict, Current metadata
+    :param sample_name: str, name of sample
+    :param update_func: function pointer, function to call with updated metadata
+    :return:
+    """
     if request.method == 'POST':
         # Validate the form
-        form = APTSampleDescriptionForm(request.form)
+        form = my_form(request.form)
         errors = None
         if form.validate():
             try:
-                sample.update_sample_information(form)
+                update_func(form)
             except DatasetParseException as exc:
                 errors = exc.errors
-                return render_template('sample_generalform.html', dataset_name=dataset_name, sample=sample,
+                return render_template(edit_page, dataset_name=dataset_name, sample=sample,
                                        sample_name=sample_name, errors=errors, form=form)
-            return redirect('/dataset/%s/sample/%s'%(dataset_name, sample_name))
+            return redirect('/dataset/%s/sample/%s' % (dataset_name, sample_name))
         else:
-            return render_template('sample_generalform.html', dataset_name=dataset_name, sample=sample,
-                               sample_name=sample_name, errors=errors, form=form)
+            return render_template(edit_page, dataset_name=dataset_name, sample=sample,
+                                   sample_name=sample_name, errors=errors, form=form)
     else:
         # Load in the existing information
         errors = None
         try:
-            sample_metadata = sample.load_sample_information()
-            form = APTSampleDescriptionForm(**sample_metadata.metadata)
+            form = my_form(**sample_metadata.metadata)
         except DatasetParseException as err:
-            form = APTCollectionMethodForm()
+            form = my_form()
             errors = err
-        return render_template('sample_generalform.html', dataset_name=dataset_name, sample=sample,
+        return render_template(edit_page, dataset_name=dataset_name, sample=sample,
                                sample_name=sample_name, form=form, errors=errors)

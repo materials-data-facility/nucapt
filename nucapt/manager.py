@@ -157,7 +157,6 @@ class APTDataDirectory(DataDirectory):
         return [ os.path.basename(os.path.dirname(file)) for file in glob("%s/*/SampleInformation.yaml"%self.path) ]
 
 
-
 class APTSampleDirectory(DataDirectory):
     """Holds data associated with a certain sample"""
 
@@ -230,7 +229,7 @@ class APTSampleDirectory(DataDirectory):
     def update_sample_information(self, form):
         """Save sample information to disk
 
-        :param form: LEAPSampleDescriptionForm, metadata object
+        :param form: APTSampleDescriptionForm, metadata object
         :return: path to metadata"""
 
         # Validate the form
@@ -255,13 +254,15 @@ class APTSampleDirectory(DataDirectory):
 
         :return: str, path
         """
-        return os.path.join(self.path, 'CollectionMetadata.yaml')
+        return os.path.join(self.path, 'CollectionMethod.yaml')
 
-    def update_collection_metadata(self, metadata):
+    def update_collection_metadata(self, form):
         """Save metadata regarding the APT collection method to disk
 
         :param metadata: APTDataCollectionMetadata, metadata object
         :return: path to metadata"""
+
+        metadata = APTDataCollectionMetadata.from_form(form)
 
         metadata_path = self._get_collection_metadata_path()
         metadata.to_yaml(metadata_path)

@@ -9,7 +9,7 @@
     <script src="{{ url_for('static', filename='js/util.js') }}"></script>
     <script>
         $(document).ready(function () {
-            keyValueTable("description_metadata", "metadata");
+            keyValueTable("other-table", "misc");
         });
     </script>
 </head>
@@ -18,12 +18,11 @@
     {% from "_utils.html" import make_header %}
     {{ make_header([(dataset_name,'/dataset/%s'%dataset_name),
         (sample_name, '/dataset/%s/sample/%s'%(dataset_name,sample_name)),
-        ('Edit Sample Info', '/dataset/%s/sample/%s/edit_info'%(dataset_name,sample_name))
+        ('Edit Collection Metadata', 'edit_collection')
     ]) }}
-    <h1>Edit General Sample Data for {{ sample_name }}</h1>
+    <h1>Edit Collection Method Metadata for {{ sample_name }}</h1>
 
-    <p>Edit data describing this sample. This information is used to help make someone unfamiliar with this experiment
-    know what this data is.</p>
+    <p>Edit metadata describing the APT settings used to collect this settings.</p>
 
     {% if errors is not none %}
     <h2>Metadata Errors</h2>
@@ -36,7 +35,7 @@
     {% endif %}
 
     <form class='form-horizontal' method=post>
-        {{ mf.sample_form(form) }}
+        {{ mf.leap_metadata_form(form) }}
 
         <p><input type="submit" class="btn-lg btn-primary" value="Update Sample"/></p>
     </form>
