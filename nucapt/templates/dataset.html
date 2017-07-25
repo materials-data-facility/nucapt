@@ -45,6 +45,12 @@
         {% endfor %}
         {% endif %}
 
+        <h2>Samples</h2>
+
+        {% for sample in dataset.list_samples() %}
+        <h3><a href="/dataset/{{ name }}/sample/{{ sample }}">{{ sample | safe }}</a></h3>
+        {% endfor %}
+
         <h2>Actions</h2>
 
         <h3><a href="/dataset/{{name}}/sample/create">Add Sample</a></h3>

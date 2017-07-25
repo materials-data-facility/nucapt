@@ -8,10 +8,15 @@ import nucapt
 from nucapt.exceptions import DatasetParseException
 from nucapt.metadata import APTDataCollectionMetadata, GeneralMetadata, APTSampleGeneralMetadata
 
+from glob import glob
+
 # Key variables
 module_dir = os.path.dirname(os.path.abspath(nucapt.__file__))
 template_path = os.path.join(module_dir, '..', 'template_directory')
 data_path = os.path.join(module_dir, '..', 'working_directory')
+
+
+# Glob
 
 
 class DataDirectory(metaclass=ABCMeta):
@@ -142,6 +147,15 @@ class APTDataDirectory(DataDirectory):
             except:
                 continue
         return output
+
+    def list_samples(self):
+        """Get the list of samples for this dataset
+
+        :return: list of str, names of samples"""
+
+        # Find all subdirectories that contain "SampleInformation.yaml"
+        return [ os.path.basename(os.path.dirname(file)) for file in glob("%s/*/SampleInformation.yaml"%self.path) ]
+
 
 
 class APTSampleDirectory(DataDirectory):
