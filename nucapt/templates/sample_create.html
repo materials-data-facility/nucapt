@@ -34,7 +34,9 @@
     {% endif %}
 
     <form class='form-horizontal' method=post>
-        {{ form.csrf_token() | safe }}
+
+        {{ render_field(form.sample_name) }}
+
         <h2>Sample Information</h2>
 
         {{ mf.sample_form(form.sample_form) }}

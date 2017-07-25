@@ -17,6 +17,8 @@ data_path = os.path.join(module_dir, '..', 'working_directory')
 class DataDirectory(metaclass=ABCMeta):
     """Class to represent a set of data stored on this server"""
     def __init__(self, name, path):
+        if not os.path.isdir(path):
+            raise DatasetParseException('No such path: ' + path)
         self.name = name
         self.path = os.path.abspath(path)
 
@@ -64,11 +66,6 @@ class APTDataDirectory(DataDirectory):
 
         :param path: str, Path to APT dataset
         :return: APTDataDirectory, APT Dataset"""
-
-        # Check if path does not exist
-        if not os.path.isdir(path):
-            raise DatasetParseException('No dataset at: ' + path)
-
         # Infer name
         name = os.path.basename(path)
 
@@ -158,10 +155,6 @@ class APTSampleDirectory(DataDirectory):
 
     @classmethod
     def load_dataset_by_path(cls, path):
-        # Check that the path exists
-        if not os.path.isdir(path):
-            raise DatasetParseException('No such path: ' + path)
-
         # Get the names
         words = os.path.split(path)
         sample_name = words[-1]
@@ -194,7 +187,7 @@ class APTSampleDirectory(DataDirectory):
         collection = APTDataCollectionMetadata.from_form(form.collection_form)
 
         # Create a directory and save metadata in it
-        sample_name = general['sample_name']
+        sample_name = form.sample_name.data
         path = os.path.join(data_path, dataset_name, sample_name)
 
         #   Check if that path exists
@@ -202,8 +195,11 @@ class APTSampleDirectory(DataDirectory):
             raise DatasetParseException('Sample %s already exists for dataset %s'%(sample_name, dataset_name))
         os.mkdir(path)
 
-        general.to_yaml(os.path.join(path, 'SampleInformation.yaml'))
-        collection.to_yaml(os.path.join(path, 'CollectionMethod.yaml'))
+        # Instantiate the object
+        sample = cls(dataset_name, sample_name, path)
+
+        general.to_yaml(sample._get_sample_information_path())
+        collection.to_yaml(sample._get_collection_metadata_path())
 
         # Download the files
         # TBD
@@ -217,12 +213,16 @@ class APTSampleDirectory(DataDirectory):
         """
         return os.path.join(self.path, 'SampleInformation.yaml')
 
-    def update_sample_information(self, metadata):
+    def update_sample_information(self, form):
         """Save sample information to disk
 
-        :param metadata: APTSampleGeneralMetadata, metadata object
+        :param form: LEAPSampleDescriptionForm, metadata object
         :return: path to metadata"""
 
+        # Validate the form
+        metadata = APTSampleGeneralMetadata.from_form(form)
+
+        # Save it
         metadata_path = self._get_sample_information_path()
         metadata.to_yaml(metadata_path)
         return metadata_path

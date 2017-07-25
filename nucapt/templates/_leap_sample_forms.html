@@ -27,7 +27,7 @@
 {%- endmacro %}
 
 {% macro sample_form(form) -%}
-{{ render_field(form.sample_name) }}
+{{ render_field(form.sample_title) }}
 {{ render_field(form.sample_description) }}
 {{ render_keyvalue_field(form.metadata, "description_metadata") }}
 {%- endmacro %}
