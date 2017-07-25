@@ -23,7 +23,7 @@ def create():
             form.authors.data
         )
         return redirect('/dataset/%s'%name)
-    return render_template('create.html', form=form)
+    return render_template('dataset_create.html', form=form)
 
 
 @app.route("/dataset/<name>")
