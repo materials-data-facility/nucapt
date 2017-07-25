@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NUCAPT: Create Dataset</title>
+    {% include '_includes.html' %}
+    {% from '_form_utils.html' import render_field %}
+    <script type = 'text/javascript' language="javascript">
+        $(document).ready(function() {
+            $("#btn-del-row").hide(); // Remove this button at first
+
+            var getNumRows = function() {
+                return $("#author_table").find("tr").length - 1;
+            };
+
+            $("#btn-add-row").click(function() {
+                var numRows = getNumRows();
+
+                // Make a new form row
+                var tr = document.createElement("tr");
+                ['first_name', 'last_name', 'affiliation'].forEach(function(e) {
+                    var td = document.createElement("td");
+                    var input = document.createElement("input");
+                    input.id = 'authors-' + numRows + "-" + e;
+                    input.name = input.id;
+                    input.type = 'text';
+                    td.appendChild(input);
+                    tr.appendChild(td)
+                });
+                $("#author_table tr:last").after(tr);
+
+                if (numRows >= 1) {
+                    $("#btn-del-row").show()
+                }
+            });
+
+            $("#btn-del-row").click(function() {
+                var numRows = getNumRows();
+                if (numRows > 1) {
+                    $("#author_table tr:last").remove();
+                }
+                if (numRows == 2) {
+                    $("#btn-del-row").hide();
+                }
+            })
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+	    {% from "_utils.html" import make_header %}
+        {{ make_header([('Create Dataset','/create/')]) }}
+        <h1>Create NUCAPT Dataset</h1>
+
+        <form class='form-horizontal' method=post>
+            <h4>Title</h4>
+            <div class="col-10">
+                {{ render_field(form.title) }}
+            </div>
+
+            <h4>Abstract</h4>
+            {{ render_field(form.abstract) }}
+
+            <h4>Authors</h4>
+            <table class="table" id="author_table">
+                <tr><th>First Name</th><th>Last Name</th><th>Affliation</th></tr>
+                {% for author in form.authors %}
+                <tr>
+                    <td>{{author.first_name() | safe}}</td>
+                    <td>{{author.last_name() | safe}}</td>
+                    <td>{{author.affiliation() | safe}}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            <p>
+                <button type="button" class="btn-sm btn-primary" id="btn-add-row">Add Author</button>
+                <button type="button" class="btn-sm btn-danger" id="btn-del-row">Remove Author</button>
+            </p>
+
+            <h4>Create New Dataset</h4>
+            <p>Clicking the following button will generate a new dataset on NUCAPT's data server.</p>
+            <p><input type="submit" class="btn-lg btn-primary" value="Create"/></p>
+        </form>
+
+    </div>
+</body>
+</html>
