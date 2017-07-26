@@ -14,16 +14,38 @@ def index():
 @app.route("/create", methods=['GET', 'POST'])
 def create():
     """Create a new dataset"""
+    title = 'Create New Dataset'
+    description = 'Create a new dataset on the NUCAPT server. A dataset describes a single set of similar experiments.'
+
     form = CreateForm(request.form)
     if request.method == 'POST' and form.validate():
-        name, path = APTDataDirectory.initialize_dataset(
-            form.title.data,
-            form.abstract.data,
-            form.authors.data
-        )
-        return redirect('/dataset/%s'%name)
-    return render_template('dataset_create.html', form=form)
+        dataset = APTDataDirectory.initialize_dataset(form)
+        return redirect('/dataset/%s'%dataset.name)
+    return render_template('dataset_create.html', title=title, description=description, form=form)
 
+
+@app.route("/dataset/<name>/edit", methods=['GET', 'POST'])
+def edit_dataset(name):
+    """Edit dataset metdata"""
+
+    title = 'Edit Dataset'
+    description = 'Edit the general metadata of a dataset'
+
+    try:
+        dataset = APTDataDirectory.load_dataset_by_name(name)
+    except:
+        return redirect("/dataset/" + name)
+
+    if request.method == 'POST':
+        form = CreateForm(request.form)
+        if form.validate():
+            dataset.update_metadata(form)
+            return redirect('/dataset/' + name)
+        else:
+            return render_template('dataset_create.html', title=title, description=description, form=form)
+    else:
+        form = CreateForm(**dataset.get_metadata().metadata)
+        return render_template('dataset_create.html', title=title, description=description, form=form)
 
 @app.route("/dataset/<name>")
 def display_dataset(name):
@@ -36,7 +58,8 @@ def display_dataset(name):
         errors = exc.errors
     samples, sample_errors = dataset.list_samples()
     errors.extend(sample_errors)
-    return render_template('dataset.html', name=name, dataset=dataset, samples=samples, errors=errors)
+    metadata = dataset.get_metadata()
+    return render_template('dataset.html', name=name, dataset=dataset, samples=samples, errors=errors, metadata=metadata)
 
 
 @app.route("/datasets")

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>NUCAPT: Create Dataset</title>
+    <title>{{ title }}</title>
     {% include '_includes.html' %}
     {% from '_form_utils.html' import render_field %}
     <script type = 'text/javascript' language="javascript">
@@ -49,16 +49,14 @@
 <body>
     <div class="container">
 	    {% from "_utils.html" import make_header %}
-        {{ make_header([('Create Dataset','/create/')]) }}
-        <h1>Create NUCAPT Dataset</h1>
+        {{ make_header([(title,'/create/')]) }}
+        <h1>{{ title | safe }}</h1>
+
+        <p>{{ description | safe }}</p>
 
         <form class='form-horizontal' method=post>
-            <h4>Title</h4>
-            <div class="col-10">
-                {{ render_field(form.title) }}
-            </div>
+            {{ render_field(form.title) }}
 
-            <h4>Abstract</h4>
             {{ render_field(form.abstract) }}
 
             <h4>Authors</h4>
@@ -77,9 +75,7 @@
                 <button type="button" class="btn-sm btn-danger" id="btn-del-row">Remove Author</button>
             </p>
 
-            <h4>Create New Dataset</h4>
-            <p>Clicking the following button will generate a new dataset on NUCAPT's data server.</p>
-            <p><input type="submit" class="btn-lg btn-primary" value="Create"/></p>
+            <p><input type="submit" class="btn-lg btn-primary" value="Submit"/></p>
         </form>
 
     </div>

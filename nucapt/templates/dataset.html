@@ -28,10 +28,10 @@
         <p>Location: {{ dataset.path }}</p>
 
         <h3>Title</h3>
-        <p>{{ dataset.title | safe }}</p>
+        <p>{{ metadata['title'] | safe }}</p>
 
         <h3>Authors</h3>
-        {% for author in dataset.authors %}
+        {% for author in metadata['authors'] %}
         <p>{{ author['first_name'] | safe }} {{ author['last_name'] | safe }} ({{ author['affiliation'] | safe }})</p>
         {% endfor %}
 
@@ -41,7 +41,7 @@
 
         <h3>Dates</h3>
 
-        {% for name,date in dataset.dates.items() %}
+        {% for name,date in metadata['dates'].items() %}
         <p><label>{{name | safe}}</label>: {{ date | safe }}</p>
         {% endfor %}
         {% endif %}
@@ -64,6 +64,7 @@
         <h2>Actions</h2>
 
         <h3><a href="/dataset/{{name}}/sample/create">Add Sample</a></h3>
+        <h3><a href="/dataset/{{name}}/edit">Edit Metadata</a></h3>
 
     </div>
 </body>

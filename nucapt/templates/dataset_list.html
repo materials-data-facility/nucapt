@@ -25,9 +25,10 @@
             {% for dir,info in dir_info.items() %}
             {% if dir_valid[dir] %}
             <tr>
+                {% set metadata = info.get_metadata() %}
                 <td>{{ info.name }}</td>
-                <td>{{ info.title }}</td>
-                <td>{{ info.dates['creation_date']}}</td>
+                <td>{{ metadata['title'] }}</td>
+                <td>{{ metadata['dates']['creation_date']}}</td>
                 <td>
                     <a href="/dataset/{{ info.name }}">View</a>
                     <a href="#">Publish</a>
