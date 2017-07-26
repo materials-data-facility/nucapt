@@ -77,7 +77,7 @@ class MetadataHolder:
 
         try:
             with open(path, 'w') as fp:
-                yaml.dump(self.metadata, fp)
+                yaml.safe_dump(self.metadata, fp, allow_unicode=True)
         except IOError as exc:
             raise DatasetParseException('Save for YAML file failed: ' + str(exc))
 
