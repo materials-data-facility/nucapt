@@ -100,6 +100,9 @@ class APTDataDirectory(DataDirectory):
         # Initialize this dataset
         dataset = cls(my_name, my_path)
 
+        # Add start date
+        metadata.metadata['dates'] = {'creation_date': date.today().strftime("%d%b%y")}
+
         # Write to disk
         metadata_path = dataset._get_metadata_path()
         metadata.to_yaml(metadata_path)

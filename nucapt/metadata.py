@@ -51,9 +51,7 @@ class MetadataHolder:
 
         metadata = form.data
         if 'csrf_token' in metadata.keys():
-            print(metadata.keys())
             del metadata['csrf_token']
-        print(metadata)
         return cls(**metadata)
 
     @classmethod
