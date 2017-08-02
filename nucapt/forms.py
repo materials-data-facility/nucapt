@@ -59,18 +59,12 @@ class APTSampleDescriptionForm(Form):
                          description='Structured metadata about materials. Use to make indexing easier')
 
 
-class APTRawDataForm(Form):
-    """Form to collect raw data files"""
-
-    rhit_file = FileField('RHIT file')
-    rrng_file = FileField('RRNG file')
-
-
 class APTSampleForm(Form):
     """Form to get data for a new sample"""
 
     sample_name = StringField('Sample Name', description='Name of sample directory. Cannot contain whitespace.',
-                              validators=[Regexp('[\\w0-9]+')])
+                              validators=[Regexp('\\w+', message='File name can only contain word '
+                                                                 'characters: A-Z, a-z, 0-9, and _')])
     sample_form = FormField(APTSampleDescriptionForm, description="Metadata for the ")
     collection_form = FormField(APTCollectionMethodForm, description="Metadata for data collection method")
-    file_form = FormField(APTRawDataForm, description="Raw data files")
+    rhit_file = FileField('RHIT file')

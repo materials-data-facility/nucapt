@@ -1,5 +1,6 @@
 from nucapt import app
 from flask import render_template, request, redirect
+import os
 from nucapt.forms import CreateForm, APTSampleForm, APTCollectionMethodForm, APTSampleDescriptionForm
 from nucapt.manager import APTDataDirectory, APTSampleDirectory
 from nucapt.exceptions import DatasetParseException
@@ -47,6 +48,7 @@ def edit_dataset(name):
         form = CreateForm(**dataset.get_metadata().metadata)
         return render_template('dataset_create.html', title=title, description=description, form=form)
 
+
 @app.route("/dataset/<name>")
 def display_dataset(name):
     """Display metadata about a certain dataset"""
@@ -90,6 +92,15 @@ def create_sample(name):
             sample_name = APTSampleDirectory.create_sample(name, form)
         except DatasetParseException as err:
             return render_template('sample_create.html', form=form, name=name, errors=err.errors)
+
+        # If valid, upload the data
+        sample = APTSampleDirectory.load_dataset_by_name(name, sample_name)
+        rhit_file = request.files['rhit_file']
+        if rhit_file.filename.lower().endswith('.rhit'):
+            rhit_file.save(os.path.join(sample.path, rhit_file.filename))
+        else:
+            return render_template('sample_create.html', form=form, name=name, errors=['File must have extension RHIT'])
+
         return redirect("/dataset/%s/sample/%s"%(name, sample_name))
 
     return render_template('sample_create.html', form=form, name=name)

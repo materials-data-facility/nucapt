@@ -34,7 +34,7 @@
     </ol>
     {% endif %}
 
-    <form class='form-horizontal' method=post>
+    <form class='form-horizontal' method=post enctype="multipart/form-data">
 
         {{ render_field(form.sample_name) }}
 
@@ -47,10 +47,11 @@
         <p>Metadata about how a sample was collected.</p>
         {{ mf.leap_metadata_form(form.collection_form) }}
 
-        <h2>Raw Data Files</h2>
-        <p>Unprocessed data files for this sample</p>
+        <h2>Raw Data</h2>
+        <p>A sample is defined by its raw data file (RHIT). You will upload any data from the reconstruction (e.g., RRNG
+            files) later</p>
 
-        {{ mf.file_form(form.file_form) }}
+        {{ render_field(form.rhit_file) }}
 
         <p><input type="submit" class="btn-lg btn-primary" value="Create Sample"/></p>
     </form>

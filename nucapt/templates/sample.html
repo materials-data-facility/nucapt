@@ -29,6 +29,8 @@
 
         <h2>Sample Information</h2>
 
+        <p>RHIT File: {{ sample.get_rhit_path() }}</p>
+
         <p>{{ sample_metadata['sample_description'] | safe }}</p>
 
         {% if sample_metadata['metadata'] | length > 0 %}

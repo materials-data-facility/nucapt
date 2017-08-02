@@ -21,11 +21,6 @@
 {{ render_keyvalue_field(form.misc, table_name) }}
 {%- endmacro %}
 
-{% macro file_form(form) %}
-{{ render_field(form.rhit_file) }}
-{{ render_field(form.rrng_file) }}
-{%- endmacro %}
-
 {% macro sample_form(form) -%}
 {{ render_field(form.sample_title) }}
 {{ render_field(form.sample_description) }}

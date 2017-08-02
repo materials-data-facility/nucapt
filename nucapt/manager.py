@@ -1,5 +1,6 @@
 """Operations relating to managing data folders on NUCAPT servers"""
 
+from glob import glob
 import os
 from abc import abstractmethod, ABCMeta
 from datetime import date
@@ -203,7 +204,7 @@ class APTSampleDirectory(DataDirectory):
         """
 
         path = os.path.join(data_path, dataset_name, sample_name)
-        return APTSampleDirectory.load_dataset_by_path(path)
+        return cls.load_dataset_by_path(path)
 
     @classmethod
     def create_sample(cls, dataset_name, form):
@@ -232,9 +233,6 @@ class APTSampleDirectory(DataDirectory):
 
         general.to_yaml(sample._get_sample_information_path())
         collection.to_yaml(sample._get_collection_metadata_path())
-
-        # Download the files
-        # TBD
 
         return sample_name
 
@@ -295,3 +293,15 @@ class APTSampleDirectory(DataDirectory):
         if os.path.isfile(self._get_collection_metadata_path()):
             return APTDataCollectionMetadata.from_yaml(self._get_collection_metadata_path())
         return None
+
+    def get_rhit_path(self):
+        """Get the path to the RHIT file
+
+        :return: str, RHIT path"""
+
+        # Find the *RHIT file in this directory
+        file = glob(os.path.join(self.path, '*.RHIT'))
+        if len(file) > 1:
+            raise DatasetParseException('More than 1 RHIT file! Should be exactly one')
+
+        return os.path.join(self.path, file[0])
