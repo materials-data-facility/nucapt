@@ -160,7 +160,7 @@ def edit_collection_information(dataset_name, sample_name):
         return redirect("/dataset/%s/sample/%s"%(dataset_name, sample_name))
 
     # Load in the metadata
-    edit_page = 'sample_collectionForm.html'
+    edit_page = 'sample_collectionform.html'
     my_form = APTCollectionMethodForm
     sample_metadata = sample.load_collection_metadata()
     updated_func = sample.update_collection_metadata
