@@ -99,3 +99,10 @@ class APTSampleGeneralMetadata(MetadataHolder):
 
     def _get_schema_path(self):
         return os.path.join(schema_path, "SampleMetadata.json")
+
+
+class APTReconstructionMetadata(MetadataHolder):
+    """Class to hold metadata about a reconstruction"""
+
+    def _get_schema_path(self):
+        return os.path.join(schema_path, "ReconstructionMetadata.json")

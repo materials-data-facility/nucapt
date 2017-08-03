@@ -1,15 +1,14 @@
 """Operations relating to managing data folders on NUCAPT servers"""
 
-from glob import glob
 import os
 from abc import abstractmethod, ABCMeta
 from datetime import date
+from glob import glob
 
 import nucapt
 from nucapt.exceptions import DatasetParseException
-from nucapt.metadata import APTDataCollectionMetadata, GeneralMetadata, APTSampleGeneralMetadata
-
-from glob import glob
+from nucapt.metadata import APTDataCollectionMetadata, GeneralMetadata, APTSampleGeneralMetadata, \
+    APTReconstructionMetadata
 
 # Key variables
 module_dir = os.path.dirname(os.path.abspath(nucapt.__file__))
@@ -189,9 +188,8 @@ class APTSampleDirectory(DataDirectory):
     @classmethod
     def load_dataset_by_path(cls, path):
         # Get the names
-        words = os.path.split(path)
-        sample_name = words[-1]
-        dataset_name = words[-2]
+        temp_path, sample_name = os.path.split(path)
+        temp_path, dataset_name = os.path.split(temp_path)
         return cls(dataset_name, sample_name, path)
 
     @classmethod
@@ -305,3 +303,98 @@ class APTSampleDirectory(DataDirectory):
             raise DatasetParseException('More than 1 RHIT file! Should be exactly one')
 
         return os.path.join(self.path, file[0])
+
+    def list_reconstructions(self):
+        """Get all reconstructions for this sample
+
+        :return: """
+
+        # Find all subdirectories that contain "SampleInformation.yaml"
+        output = []
+        errors = []
+        for file in glob("%s/*/SampleInformation.yaml" % self.path):
+            try:
+                output.append(APTSampleDirectory.load_dataset_by_path(os.path.dirname(file)))
+            except DatasetParseException as exc:
+                errors.extend(exc.errors)
+        return output, errors
+
+
+class APTReconstruction(DataDirectory):
+    """Directory describing a reconstruction"""
+
+    def __init__(self, dataset_name, sample_name, recon_name, path):
+        """Do not use, use `load_by_name` or `load_by_path` instead"""
+        super(APTReconstruction, self).__init__(self._make_name(dataset_name, sample_name, recon_name), path)
+        self.dataset_name = dataset_name
+        self.sample_name = sample_name
+        self.recon_name = recon_name
+
+    @staticmethod
+    def _make_name(dataset, sample, recon):
+        return '_'.join([dataset, sample, recon])
+
+    @classmethod
+    def create_reconstruction(cls, form, dataset_name, sample_name):
+        """Add a new construction to a sample
+
+        :param form: AddReconstructionForm, Form from web service
+        :param
+        :return: str, Reconstruction name
+        """
+
+        # Get the recon_name
+        recon_name = form.data['name']
+
+        # Validate metadata
+        form_data = dict(form.data)
+        del form_data['name']
+        del form_data['pos_file']
+        metadata = APTReconstructionMetadata(**form_data)
+
+        # Make the directory and save the metadata
+        path = cls._make_path(dataset_name, sample_name, recon_name)
+        if os.path.isdir(path):
+            raise DatasetParseException('Recon %s already exists' % (recon_name))
+        os.mkdir(path)
+        recon = cls.load_dataset_by_path(path)
+
+        metadata.to_yaml(recon._get_metadata_path())
+
+        return recon_name
+
+    @classmethod
+    def load_dataset_by_path(cls, path):
+        temp_path, recon_name = os.path.split(path)
+        temp_path, sample_name = os.path.split(temp_path)
+        temp_path, dataset_name = os.path.split(temp_path)
+        return cls(dataset_name, sample_name, recon_name, path)
+
+    @classmethod
+    def load_dataset_by_name(cls, dataset_name, sample_name, recon_name):
+        """Load an APT reconstruction by name
+
+        :param dataset_name: str, name of dataset
+        :param sample_name: str, name of sample
+        :param recon_name: str, name of reconstruction
+        :return: APTReconstruction
+        """
+
+        path = cls._make_path(dataset_name, sample_name, recon_name)
+        return cls(dataset_name, sample_name, recon_name, path)
+
+    @classmethod
+    def _make_path(cls, dataset_name, sample_name, recon_name):
+        return os.path.join(data_path, dataset_name, sample_name, recon_name)
+
+    def _get_metadata_path(self):
+        """Get the path to the metadata file"""
+        return os.path.join(self.path, 'ReconstructionMetadata.yml')
+
+    def load_metadata(self):
+        """Load in the metadata
+
+        :return: APTReconstructionMetadata
+        """
+
+        return APTReconstructionMetadata.from_yaml(self._get_metadata_path())

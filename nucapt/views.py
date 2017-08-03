@@ -1,9 +1,14 @@
-from nucapt import app
-from flask import render_template, request, redirect
 import os
-from nucapt.forms import CreateForm, APTSampleForm, APTCollectionMethodForm, APTSampleDescriptionForm
-from nucapt.manager import APTDataDirectory, APTSampleDirectory
+import shutil
+
+from flask import render_template, request, redirect
+from werkzeug.utils import secure_filename
+
+from nucapt import app
 from nucapt.exceptions import DatasetParseException
+from nucapt.forms import DatasetForm, APTSampleForm, APTCollectionMethodForm, APTSampleDescriptionForm, \
+    AddAPTReconstructionForm
+from nucapt.manager import APTDataDirectory, APTSampleDirectory, APTReconstruction
 
 
 @app.route("/")
@@ -18,7 +23,7 @@ def create():
     title = 'Create New Dataset'
     description = 'Create a new dataset on the NUCAPT server. A dataset describes a single set of similar experiments.'
 
-    form = CreateForm(request.form)
+    form = DatasetForm(request.form)
     if request.method == 'POST' and form.validate():
         dataset = APTDataDirectory.initialize_dataset(form)
         return redirect('/dataset/%s'%dataset.name)
@@ -38,14 +43,14 @@ def edit_dataset(name):
         return redirect("/dataset/" + name)
 
     if request.method == 'POST':
-        form = CreateForm(request.form)
+        form = DatasetForm(request.form)
         if form.validate():
             dataset.update_metadata(form)
             return redirect('/dataset/' + name)
         else:
             return render_template('dataset_create.html', title=title, description=description, form=form)
     else:
-        form = CreateForm(**dataset.get_metadata().metadata)
+        form = DatasetForm(**dataset.get_metadata().metadata)
         return render_template('dataset_create.html', title=title, description=description, form=form)
 
 
@@ -97,8 +102,10 @@ def create_sample(name):
         sample = APTSampleDirectory.load_dataset_by_name(name, sample_name)
         rhit_file = request.files['rhit_file']
         if rhit_file.filename.lower().endswith('.rhit'):
-            rhit_file.save(os.path.join(sample.path, rhit_file.filename))
+            rhit_file.save(os.path.join(sample.path, secure_filename(rhit_file.filename)))
         else:
+            # Clear the old sample
+            shutil.rmtree(sample.path)
             return render_template('sample_create.html', form=form, name=name, errors=['File must have extension RHIT'])
 
         return redirect("/dataset/%s/sample/%s"%(name, sample_name))
@@ -205,3 +212,45 @@ def edit_sample_metadata(dataset_name, edit_page, my_form, sample, sample_metada
             errors = err
         return render_template(edit_page, dataset_name=dataset_name, sample=sample,
                                sample_name=sample_name, form=form, errors=errors)
+
+
+@app.route("/dataset/<dataset_name>/sample/<sample_name>/recon/create", methods=['GET', 'POST'])
+def create_reconstruction(dataset_name, sample_name):
+    # Create the form
+    form = AddAPTReconstructionForm(request.form)
+
+    # Make sure it validates
+    if request.method == 'POST' and form.validate():
+        try:
+            errors = []
+            # check the file
+            pos_file = request.files['pos_file']
+            print(pos_file.filename)
+            if not pos_file.filename.lower().endswith('.pos'):
+                errors.append('File must have the extension ".pos"')
+
+            # check the metadata
+            recon_name = APTReconstruction.create_reconstruction(form, dataset_name, sample_name)
+        except DatasetParseException as err:
+            return render_template('reconstruction_create.html', form=form, dataset_name=dataset_name,
+                                   sample_name=sample_name, errors=errors + err.errors)
+
+        # If valid, upload the data
+        recon = APTReconstruction.load_dataset_by_name(dataset_name, sample_name, recon_name)
+        pos_file.save(os.path.join(recon.path, secure_filename(pos_file.filename)))
+
+        return redirect("/dataset/%s/sample/%s/recon/%s" % (dataset_name, sample_name, recon_name))
+    return render_template('reconstruction_create.html', form=form, dataset_name=dataset_name, sample_name=sample_name)
+
+
+@app.route("/dataset/<dataset_name>/sample/<sample_name>/recon/<recon_name>")
+def view_reconstruction(dataset_name, sample_name, recon_name):
+    errors = None
+    try:
+        # Load in the recon
+        recon = APTReconstruction.load_dataset_by_name(dataset_name, sample_name, recon_name)
+        recon_metadata = recon.load_metadata()
+    except DatasetParseException as exc:
+        errors = exc.errors
+    return render_template('reconstruction.html', dataset_name=dataset_name, sample_name=sample_name,
+                           recon_name=recon_name, recon=recon, recon_metadata=recon_metadata, errors=errors)

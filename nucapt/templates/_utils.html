@@ -15,3 +15,13 @@
         </nav>
     </header>
 {%- endmacro %}
+
+{% macro render_errors(errors) -%}
+    {% if errors is not none %}
+        {% for error in errors %}
+            <div class="alert alert-danger">
+                <strong>Error!</strong> {{ error }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{%- endmacro %}
