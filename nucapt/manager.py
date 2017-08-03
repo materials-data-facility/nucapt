@@ -60,17 +60,7 @@ class APTDataDirectory(DataDirectory):
 
         :param path: str, Path to APT dataset
         :return: APTDataDirectory, APT Dataset"""
-        # Infer name
         name = os.path.basename(path)
-
-        # Read in the general metadata
-        metadata_file = os.path.join(path, 'GeneralMetadata.yml')
-        metadata = GeneralMetadata.from_yaml(metadata_file)
-        is_valid, errors = metadata.validate_data()
-
-        # Get the, now validated, metadata out of the object and instantiate the data
-        if len(errors) > 0:
-            raise DatasetParseException(errors)
         return cls(name, path)
 
     @classmethod
@@ -138,7 +128,7 @@ class APTDataDirectory(DataDirectory):
         :return: str, path to metadata file
         """
 
-        return os.path.join(self.path, 'GeneralMetadata.yml')
+        return os.path.join(self.path, 'GeneralMetadata.yaml')
 
     def get_metadata(self):
         """Get the general metadata for this dataset
@@ -307,17 +297,27 @@ class APTSampleDirectory(DataDirectory):
     def list_reconstructions(self):
         """Get all reconstructions for this sample
 
-        :return: """
+        :return:
+            - list of APTSampleDirectory, reconstructions
+            - list of str, errors"""
 
         # Find all subdirectories that contain "SampleInformation.yaml"
-        output = []
+        managers = []
+        metadata = []
         errors = []
-        for file in glob("%s/*/SampleInformation.yaml" % self.path):
+        for file in glob("%s/*/ReconstructionMetadata.yaml" % self.path):
+            dirname = os.path.dirname(file)
+            recon_name = os.path.basename(dirname)
             try:
-                output.append(APTSampleDirectory.load_dataset_by_path(os.path.dirname(file)))
+                managers.append(APTReconstruction.load_dataset_by_path(os.path.dirname(file)))
+                try:
+                    metadata.append(managers[-1].load_metadata())
+                except DatasetParseException as exc:
+                    metadata.append({})
+                    errors.extend(["%s:%s"%(recon_name, x) for x in exc.errors])
             except DatasetParseException as exc:
-                errors.extend(exc.errors)
-        return output, errors
+                errors.extend(["%s:%s"%(recon_name, x) for x in exc.errors])
+        return managers, metadata, errors
 
 
 class APTReconstruction(DataDirectory):
@@ -389,7 +389,7 @@ class APTReconstruction(DataDirectory):
 
     def _get_metadata_path(self):
         """Get the path to the metadata file"""
-        return os.path.join(self.path, 'ReconstructionMetadata.yml')
+        return os.path.join(self.path, 'ReconstructionMetadata.yaml')
 
     def load_metadata(self):
         """Load in the metadata

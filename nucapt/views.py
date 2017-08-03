@@ -126,15 +126,18 @@ def view_sample(dataset_name, sample_name):
     # Load in the sample information
     sample_metadata = None
     collection_metadata = None
-    errors = None
+    errors = []
     try:
         sample_metadata = sample.load_sample_information()
         collection_metadata = sample.load_collection_metadata()
+        recon_data, recon_metadata, recon_errors = sample.list_reconstructions()
+        errors.extend(recon_errors)
     except DatasetParseException as err:
-        errors = err
+        errors.extend(err.errors)
     return render_template('sample.html', dataset_name=dataset_name, sample=sample,
                            sample_name=sample_name, sample_metadata=sample_metadata,
-                           collection_metadata=collection_metadata, errors=errors)
+                           collection_metadata=collection_metadata, errors=errors,
+                           recon_data=list(zip(recon_data, recon_metadata)))
 
 
 @app.route("/dataset/<dataset_name>/sample/<sample_name>/edit_info", methods=['GET', 'POST'])

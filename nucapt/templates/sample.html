@@ -9,38 +9,48 @@
 </head>
 <body>
     <div class="container">
-        {% from "_utils.html" import make_header %}
+        {% from "_utils.html" import make_header, render_errors %}
         {{ make_header([(dataset_name,'/dataset/%s'%dataset_name), (sample_name, '/dataset/%s/sample/%s'%(dataset_name,sample_name))]) }}
         <h1>Dataset {{ dataset_name }}: Sample {{ sample_name }}</h1>
 
-        {% if errors is not none %}
-        <h2>Sample Parsing Errors</h2>
-
-        <ul>
-            {% for error in errors %}
-            <li>{{ error | safe }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
+        {{ render_errors(errors) }}
 
         {% if sample is not none %}
 
-        <p>Location: {{ sample.path }}</p>
+        <p><strong>Location</strong> {{ sample.path }}</p>
 
         <h2>Sample Information</h2>
 
-        <p>RHIT File: {{ sample.get_rhit_path() }}</p>
+        <p><strong>RHIT</strong> {{ sample.get_rhit_path() }}</p>
 
-        <p>{{ sample_metadata['sample_description'] | safe }}</p>
+        <p><strong>Description</strong> {{ sample_metadata['sample_description'] | safe }}</p>
 
         {% if sample_metadata['metadata'] | length > 0 %}
         <h3>Metadata</h3>
 
         {% for item in sample_metadata.metadata.metadata %}
 
-        <p><label>{{ item['key'] | safe }}</label>: {{ item['value'] | safe }}</p>
+        <p><strong>{{ item['key'] | safe }}</strong> {{ item['value'] | safe }}</p>
         {% endfor %}
         {% endif %}
+        {% endif %}
+
+        <h2>Reconstructions</h2>
+
+        {% if recon_data | length == 0 %}
+            <p>No reconstructions yet</p>
+        {% else %}
+            <p>Reconstructions based on this sample.</p>
+            <table class="table">
+                <tr><th>Name</th><th>Title</th><th>Actions</th></tr>
+                {% for recon in recon_data %}
+                <tr>
+                    <td>{{ recon[0].recon_name }}</td>
+                    <td>{{ recon[1].title }}</td>
+                    <td><a href="{{ sample_name }}/recon/{{ recon[0].recon_name }}">View</a></td>
+                </tr>
+                {% endfor %}
+            </table>
         {% endif %}
 
         <h2>Actions</h2>
