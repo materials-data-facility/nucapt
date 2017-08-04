@@ -4,7 +4,7 @@ python:
   - "3.6"
 install: 
     - "pip install -e ."
-    - pip install coveralls
+    - pip install coveralls[yaml]
 script: nosetests --with-coverage --cover-package=nucapt
 after_success:
   coveralls
