@@ -5,6 +5,6 @@ python:
 install: 
     - "pip install -e ."
     - pip install coveralls
-script: nosetests --with-coverages --cover-package=nucapt
+script: nosetests --with-coverage --cover-package=nucapt
 after_success:
   coveralls
