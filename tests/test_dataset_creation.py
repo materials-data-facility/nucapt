@@ -22,7 +22,7 @@ class TestWebsite(unittest.TestCase):
     def test_home(self):
         rv = self.app.get('/')
 
-    def test_create(self):
+    def test_dataset_create_and_list(self):
         rv = self.app.get('/create')
         self.assertEquals(200, rv.status_code)
 
@@ -64,6 +64,14 @@ class TestWebsite(unittest.TestCase):
         dataset = manager.APTDataDirectory.load_dataset_by_name(name)
         metadata = dataset.get_metadata()
         self.assertEquals(data['authors-1-affiliation'], metadata['authors'][1]['affiliation'])
+
+        # Test the listing
+        datasets = os.listdir(manager.data_path)
+        rv = self.app.get('/datasets')
+        soup = BeautifulSoup(rv.data, 'html.parser')
+        print(soup)
+        for dataset in datasets:
+            self.assertTrue(dataset in str(rv.data))
 
 
 if __name__ == '__main__':

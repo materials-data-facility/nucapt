@@ -9,6 +9,7 @@ from nucapt.exceptions import DatasetParseException
 from nucapt.forms import DatasetForm, APTSampleForm, APTCollectionMethodForm, APTSampleDescriptionForm, \
     AddAPTReconstructionForm
 from nucapt.manager import APTDataDirectory, APTSampleDirectory, APTReconstruction
+import nucapt.manager as manager
 
 
 @app.route("/")
@@ -73,7 +74,7 @@ def display_dataset(name):
 def list_datasets():
     """List all datasets currently stored at default data path"""
 
-    dir_info = APTDataDirectory.get_all_datasets()
+    dir_info = APTDataDirectory.get_all_datasets(manager.data_path)
     dir_valid = dict([(dir, isinstance(info,APTDataDirectory)) for dir,info in dir_info.items()])
     return render_template("dataset_list.html", dir_info=dir_info, dir_valid=dir_valid)
 
