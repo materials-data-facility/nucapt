@@ -248,12 +248,22 @@ def create_reconstruction(dataset_name, sample_name):
 
 @app.route("/dataset/<dataset_name>/sample/<sample_name>/recon/<recon_name>")
 def view_reconstruction(dataset_name, sample_name, recon_name):
-    errors = None
+    errors = []
     try:
         # Load in the recon
         recon = APTReconstruction.load_dataset_by_name(dataset_name, sample_name, recon_name)
         recon_metadata = recon.load_metadata()
     except DatasetParseException as exc:
         errors = exc.errors
+
+    try:
+        # Get the POS and RRNG files
+        pos_path = recon.get_pos_file()
+
+    except DatasetParseException as exc:
+        errors.extend(exc.errors)
+    except:
+        pass
     return render_template('reconstruction.html', dataset_name=dataset_name, sample_name=sample_name,
-                           recon_name=recon_name, recon=recon, recon_metadata=recon_metadata, errors=errors)
+                           recon_name=recon_name, recon=recon, recon_metadata=recon_metadata, errors=errors,
+                           pos_path=pos_path)

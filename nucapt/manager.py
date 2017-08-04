@@ -33,6 +33,18 @@ class DataDirectory(metaclass=ABCMeta):
         :return: DataDirectory"""
         pass
 
+    def _find_file(self, file_type):
+        """File a file with a certain extension in this directory
+
+        :param file_type: str, extension of target file
+        :return: Path to target file"""
+        file = glob(os.path.join(self.path, '*.%s' % file_type))
+        if len(file) == 0:
+            raise DatasetParseException('No %s files. Somehow, it got deleted.' % file_type)
+        if len(file) > 1:
+            raise DatasetParseException('More than 1 %s file! Should be exactly one' % file_type)
+        return os.path.join(self.path, file[0])
+
 
 class APTDataDirectory(DataDirectory):
     """Class that represents a NUCAPT dataset"""
@@ -288,11 +300,7 @@ class APTSampleDirectory(DataDirectory):
         :return: str, RHIT path"""
 
         # Find the *RHIT file in this directory
-        file = glob(os.path.join(self.path, '*.RHIT'))
-        if len(file) > 1:
-            raise DatasetParseException('More than 1 RHIT file! Should be exactly one')
-
-        return os.path.join(self.path, file[0])
+        return self._find_file("RHIT")
 
     def list_reconstructions(self):
         """Get all reconstructions for this sample
@@ -398,3 +406,10 @@ class APTReconstruction(DataDirectory):
         """
 
         return APTReconstructionMetadata.from_yaml(self._get_metadata_path())
+
+    def get_pos_file(self):
+        """Get the POS file for this directory
+
+        :return: str, path to POS file"""
+
+        return self._find_file("POS")

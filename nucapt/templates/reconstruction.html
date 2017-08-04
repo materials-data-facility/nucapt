@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>NUCAPT: Sample {{ sample_name }}</title>
+    <title>NUCAPT: Reconstruction {{ recon_name }}</title>
     {% include '_includes.html' %}
     <script type='text/javascript' language="javascript">
     </script>
@@ -20,7 +20,7 @@
 
     {% if recon is not none %}
 
-        <p>Location: {{ recon.path }}</p>
+        <p><strong>Path</strong> {{ recon.path }}</p>
 
         <p><strong>Title</strong> {{ recon_metadata['title'] | safe }}</p>
 
@@ -39,7 +39,7 @@
 
     <h2>Files</h2>
 
-    <p>TBD</p>
+    <p><strong>POS File</strong> {{ pos_path }}</p>
 
 
     <h2>Actions</h2>
