@@ -5,6 +5,8 @@ from abc import abstractmethod, ABCMeta
 from datetime import date
 from glob import glob
 
+import six
+
 import nucapt
 from nucapt.exceptions import DatasetParseException
 from nucapt.metadata import APTDataCollectionMetadata, GeneralMetadata, APTSampleGeneralMetadata, \
@@ -16,7 +18,8 @@ template_path = os.path.join(module_dir, '..', 'template_directory')
 data_path = os.path.join(module_dir, '..', 'working_directory')
 
 
-class DataDirectory(metaclass=ABCMeta):
+@six.add_metaclass(ABCMeta)
+class DataDirectory:
     """Class to represent a set of data stored on this server"""
     def __init__(self, name, path):
         if not os.path.isdir(path):
