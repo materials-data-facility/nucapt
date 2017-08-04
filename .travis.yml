@@ -7,4 +7,4 @@ install:
     - pip install coveralls[yaml]
 script: nosetests --with-coverage --cover-package=nucapt
 after_success:
-  coveralls
+  coveralls debug
