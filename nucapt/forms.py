@@ -1,5 +1,6 @@
 from wtforms import Form, StringField, TextAreaField, FieldList, FormField, RadioField, FloatField
-from wtforms.validators import NumberRange
+from wtforms.fields.simple import FileField
+from wtforms.validators import NumberRange, Regexp
 
 
 class KeyValueForm(Form):
@@ -14,7 +15,7 @@ class AuthorForm(Form):
     affiliation = StringField('Affiliation', description='Name of home institution')
 
 
-class CreateForm(Form):
+class DatasetForm(Form):
     """Form for creating a new dataset"""
     title = StringField('Title')
     abstract = TextAreaField('Abstract', description='Abstract describing this experiment. As long as necessary')
@@ -23,7 +24,7 @@ class CreateForm(Form):
                         description='People associated with this dataset')
 
 
-class LEAPMetadataForm(Form):
+class APTCollectionMethodForm(Form):
     """Form to capture leap metadata
 
     LW 13Jul17: We should select real default values to these"""
@@ -47,3 +48,44 @@ class LEAPMetadataForm(Form):
     starting_voltage = FloatField('Starting Voltage', description='Starting voltage (units)', default=1)
     chamber_pressure = FloatField('Chamber Vacuum Pressure', description='Chamber pressure (torr)', default=1)
     misc = FieldList(FormField(KeyValueForm), 'Other Metadata', description='Anything else that is pertinent')
+
+
+class APTSampleDescriptionForm(Form):
+    """Description of a LEAP sample"""
+
+    sample_title = StringField('Sample Title', description='Short description of sample')
+    sample_description = TextAreaField('Sample Description', description='Longer-form description of the sample')
+    metadata = FieldList(FormField(KeyValueForm), 'Sample Metadata',
+                         description='Structured metadata about sample. Use to make indexing easier')
+
+
+class APTSampleForm(Form):
+    """Form to get data for a new sample"""
+
+    sample_name = StringField('Sample Name', description='Name of sample directory. Cannot contain whitespace.',
+                              render_kw=dict(pattern='\\w+',
+                                             title='Only word characters allowed: A-Z, a-z, 0-9, and _'),
+                              validators=[Regexp('\\w+', message='File name can only contain word '
+                                                                 'characters: A-Z, a-z, 0-9, and _')])
+    sample_form = FormField(APTSampleDescriptionForm, description="Metadata for the ")
+    collection_form = FormField(APTCollectionMethodForm, description="Metadata for data collection method")
+    rhit_file = FileField('RHIT file')
+
+
+class APTReconstructionForm(Form):
+    """Form to describe metadata for a APT reconstruction"""
+
+    title = StringField('Title', description='Title for this reconstruction')
+    description = TextAreaField('Description', description='Longer-form description of this reconstruction')
+    metadata = FieldList(FormField(KeyValueForm), 'Sample Metadata',
+                         description='Structured metadata about reconstruction. Use to make indexing easier')
+    pos_file = FileField('POS File')
+
+
+class AddAPTReconstructionForm(APTReconstructionForm):
+    """Form to add reconstruction metadata to a sample"""
+
+    name = StringField('Name', description='Name of reconstruction',
+                       render_kw=dict(pattern='\\w+', title='Only word characters allowed: A-Z, a-z, 0-9, and _'),
+                       validators=[Regexp('\\w+', message='Reconstruction name can only contain word '
+                                                          'characters: A-Z, a-z, 0-9, and _')])

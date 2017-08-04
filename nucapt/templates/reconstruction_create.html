@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NUCAPT: Create Sample for {{ name }}</title>
+    {% include '_includes.html' %}
+    {% import '_leap_sample_forms.html' as mf %}
+    {% from '_form_utils.html' import render_field, render_keyvalue_field %}
+    <script src="{{ url_for('static', filename='js/util.js') }}"></script>
+    <script>
+        $(document).ready(function () {
+            keyValueTable("metadata-table", "metadata");
+        });
+    </script>
+</head>
+<body>
+<div class="container" enctype="multipart/form-data">
+    {% from "_utils.html" import make_header, render_errors %}
+    {{ make_header([(dataset_name,'/dataset/' + dataset_name),
+        (sample_name, '/dataset/%s/sample/'%sample_name),
+        ('Add Reconstruction', 'create')
+        ]) }}
+    <h1>Add Reconstruction to {{ sample_name }}</h1>
+
+    <p>Add a new reconstruction to an sample. You need specify the shank angle and tip radius assumed for this
+        reconstruction
+        [LW 3Aug17: I'm not sure what this metadata means. They were listed under "3D Reconstruction" so I put them
+        here]</p>
+
+    {{ render_errors(errors) }}
+
+    <form class='form-horizontal' method=post enctype="multipart/form-data">
+
+        {{ render_field(form.name) }}
+
+        {{ render_field(form.title) }}
+
+        {{ render_field(form.description) }}
+
+        {{ render_keyvalue_field(form.metadata, 'metadata-table') }}
+
+        {{ render_field(form.pos_file) }}
+
+        <p><input type="submit" class="btn-lg btn-primary" value="Add Reconstruction"/></p>
+
+    </form>
+
+</div>
+</body>
+</html>

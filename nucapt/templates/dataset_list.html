@@ -9,8 +9,9 @@
 </head>
 <body>
     <div class="container">
-	    <img src="{{ url_for('static', filename='nucapt.png') }}"/>
-        <h1>All Current Datastes</h1>
+        {% from "_utils.html" import make_header %}
+        {{ make_header([('List Datasets','/datasets')]) }}
+        <h1>All Current Datasets</h1>
 
         <p>This page lists all datasets currently stored using the NUCAPT data publication service</p>
 
@@ -24,9 +25,10 @@
             {% for dir,info in dir_info.items() %}
             {% if dir_valid[dir] %}
             <tr>
+                {% set metadata = info.get_metadata() %}
                 <td>{{ info.name }}</td>
-                <td>{{ info.title }}</td>
-                <td>{{ info.dates['creation_date']}}</td>
+                <td>{{ metadata['title'] }}</td>
+                <td>{{ metadata['dates']['creation_date']}}</td>
                 <td>
                     <a href="/dataset/{{ info.name }}">View</a>
                     <a href="#">Publish</a>

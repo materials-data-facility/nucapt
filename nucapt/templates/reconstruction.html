@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NUCAPT: Reconstruction {{ recon_name }}</title>
+    {% include '_includes.html' %}
+    <script type='text/javascript' language="javascript">
+    </script>
+</head>
+<body>
+<div class="container">
+    {% from "_utils.html" import make_header, render_errors %}
+    {{ make_header([(dataset_name,'/dataset/%s'%dataset_name),
+            (sample_name, '/dataset/%s/sample/%s'%(dataset_name,sample_name)),
+            (recon_name, '#')
+        ]) }}
+    <h1>Reconstruction {{ recon_name }}</h1>
+
+    {{ render_errors(errors) }}
+
+    {% if recon is not none %}
+
+        <p><strong>Path</strong> {{ recon.path }}</p>
+
+        <p><strong>Title</strong> {{ recon_metadata['title'] | safe }}</p>
+
+        <p>{{ recon_metadata['description'] | safe }}</p>
+
+        {% if recon_metadata['metadata'] | length > 0 %}
+            <h3>Metadata</h3>
+
+            {% for item in recon_metadata['metadata'] %}
+
+                <p><label>{{ item['key'] | safe }}</label>: {{ item['value'] | safe }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endif %}
+
+
+    <h2>Files</h2>
+
+    <p><strong>POS File</strong> {{ pos_path }}</p>
+
+
+    <h2>Actions</h2>
+
+</div>
+</body>
+</html>

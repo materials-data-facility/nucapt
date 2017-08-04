@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NUCAPT: Create Sample for {{ name }}</title>
+    {% include '_includes.html' %}
+    {% import '_leap_sample_forms.html' as mf %}
+    {% from '_form_utils.html' import render_field %}
+    <script src="{{ url_for('static', filename='js/util.js') }}"></script>
+    <script>
+        $(document).ready(function () {
+            keyValueTable("other-table", "metadata_form-misc");
+            keyValueTable("description_metadata", "sample_form-metadata");
+        });
+    </script>
+</head>
+<body>
+<div class="container" enctype="multipart/form-data">
+    {% from "_utils.html" import make_header %}
+    {{ make_header([(name,'/dataset/' + name), ('Create Sample', '/dataset/%s/sample/create'%name)]) }}
+    <h1>Create Sample for {{ name }}</h1>
+
+    <p>This webform adds a new sample to an existing dataset. You need specify how you collected this sample,
+        as well as upload the raw data files. To make your data more usable by others (or even yourself in the future),
+        you should also describe your sample.</p>
+
+    {% if errors is not none %}
+    <h2>Metadata Errors</h2>
+
+    <ol>
+        {% for error in errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+    </ol>
+    {% endif %}
+
+    <form class='form-horizontal' method=post enctype="multipart/form-data">
+
+        {{ render_field(form.sample_name) }}
+
+        <h2>Sample Information</h2>
+
+        {{ mf.sample_form(form.sample_form) }}
+
+        <h2>Data Collection Metadata</h2>
+
+        <p>Metadata about how a sample was collected.</p>
+        {{ mf.leap_metadata_form(form.collection_form) }}
+
+        <h2>Raw Data</h2>
+        <p>A sample is defined by its raw data file (RHIT). You will upload any data from the reconstruction (e.g., RRNG
+            files) later</p>
+
+        {{ render_field(form.rhit_file) }}
+
+        <p><input type="submit" class="btn-lg btn-primary" value="Create Sample"/></p>
+    </form>
+
+</div>
+</body>
+</html>

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "GeneralMetadata",
-  "description": "Record describing a full APT record",
+  "description": "Record describing a full APT dataset",
   "type": "object",
   "additionalProperties": false,
   "properties": {

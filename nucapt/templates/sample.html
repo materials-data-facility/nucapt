@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NUCAPT: Sample {{ sample_name }}</title>
+    {% include '_includes.html' %}
+    <script type = 'text/javascript' language="javascript">
+    </script>
+</head>
+<body>
+    <div class="container">
+        {% from "_utils.html" import make_header, render_errors %}
+        {{ make_header([(dataset_name,'/dataset/%s'%dataset_name), (sample_name, '/dataset/%s/sample/%s'%(dataset_name,sample_name))]) }}
+        <h1>Dataset {{ dataset_name }}: Sample {{ sample_name }}</h1>
+
+        {{ render_errors(errors) }}
+
+        {% if sample is not none %}
+
+        <p><strong>Location</strong> {{ sample.path }}</p>
+
+        <h2>Sample Information</h2>
+
+        <p><strong>RHIT</strong> {{ sample.get_rhit_path() }}</p>
+
+        <p><strong>Description</strong> {{ sample_metadata['sample_description'] | safe }}</p>
+
+        {% if sample_metadata['metadata'] | length > 0 %}
+        <h3>Metadata</h3>
+
+        {% for item in sample_metadata.metadata.metadata %}
+
+        <p><strong>{{ item['key'] | safe }}</strong> {{ item['value'] | safe }}</p>
+        {% endfor %}
+        {% endif %}
+        {% endif %}
+
+        <h2>Reconstructions</h2>
+
+        {% if recon_data | length == 0 %}
+            <p>No reconstructions yet</p>
+        {% else %}
+            <p>Reconstructions based on this sample.</p>
+            <table class="table">
+                <tr><th>Name</th><th>Title</th><th>Actions</th></tr>
+                {% for recon in recon_data %}
+                <tr>
+                    <td>{{ recon[0].recon_name }}</td>
+                    <td>{{ recon[1].title }}</td>
+                    <td><a href="{{ sample_name }}/recon/{{ recon[0].recon_name }}">View</a></td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+
+        <h2>Actions</h2>
+
+        <h3><a href="{{ sample_name }}/recon/create">Add Reconstruction</a></h3>
+        <h3><a href="/dataset/{{ dataset_name }}/sample/{{ sample_name }}/edit_info">Edit Sample Information</a></h3>
+        <h3><a href="/dataset/{{ dataset_name }}/sample/{{ sample_name }}/edit_collection">Edit Collection Metadata</a></h3>
+    </div>
+</body>
+</html>

@@ -6,6 +6,8 @@
 </head>
 <body>
     <div class="container">
+        {% from "_utils.html" import make_header %}
+        {{ make_header() }}
 	    <img src="{{ url_for('static', filename='nucapt.png') }}"/>
         <h1>NUCAPT Data Managment Service</h1>
 

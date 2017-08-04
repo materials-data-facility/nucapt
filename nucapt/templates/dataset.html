@@ -9,10 +9,11 @@
 </head>
 <body>
     <div class="container">
-	    <img src="{{ url_for('static', filename='nucapt.png') }}"/>
+        {% from "_utils.html" import make_header %}
+        {{ make_header([(name,'/dataset/' + name )]) }}
         <h1>Dataset {{ name }}</h1>
 
-        {% if errors is not none %}
+        {% if errors | length > 0 %}
         <h2>Dataset Parsing Errors</h2>
 
         <ul>
@@ -27,10 +28,10 @@
         <p>Location: {{ dataset.path }}</p>
 
         <h3>Title</h3>
-        <p>{{ dataset.title | safe }}</p>
+        <p>{{ metadata['title'] | safe }}</p>
 
         <h3>Authors</h3>
-        {% for author in dataset.authors %}
+        {% for author in metadata['authors'] %}
         <p>{{ author['first_name'] | safe }} {{ author['last_name'] | safe }} ({{ author['affiliation'] | safe }})</p>
         {% endfor %}
 
@@ -40,15 +41,30 @@
 
         <h3>Dates</h3>
 
-        {% for name,date in dataset.dates.items() %}
+        {% for name,date in metadata['dates'].items() %}
         <p><label>{{name | safe}}</label>: {{ date | safe }}</p>
         {% endfor %}
         {% endif %}
 
+        <h2>Samples</h2>
+
+        <p>A listing the samples currently associated with this dataset</p>
+
+        <table class="table">
+            <tr><th>Sample</th><th>Title</th><th>Actions</th></tr>
+            {% for sample in samples %}
+            <tr>
+                <td>{{ sample['sample_name'] | safe }}</td>
+                <td>{{ sample.load_sample_information()['sample_title'] | safe }}</td>
+                <td><a href="{{ name }}/sample/{{ sample['sample_name'] }}">View</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+
         <h2>Actions</h2>
 
-        <h3><a href="/dataset/{{name}}/leapdata">Edit Collection Method Metadata</a></h3>
-
+        <h3><a href="/dataset/{{name}}/sample/create">Add Sample</a></h3>
+        <h3><a href="/dataset/{{name}}/edit">Edit Metadata</a></h3>
 
     </div>
 </body>

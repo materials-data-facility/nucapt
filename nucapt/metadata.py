@@ -9,11 +9,6 @@ from nucapt.exceptions import DatasetParseException
 module_dir = os.path.dirname(os.path.abspath(__file__))
 schema_path = os.path.join(module_dir, 'schemas')
 
-expected_apt_metadata_fields = {
-    'leap_model', 'evaporation_mode', 'voltage_ratio', 'laser_pulse_energy','laser_frequency',
-    'temperature', 'detection_rate', 'starting_voltage', 'chamber_pressure', 'misc'
-}
-
 
 class MetadataHolder:
     """General class for files that hold metadata"""
@@ -55,6 +50,8 @@ class MetadataHolder:
         :param form: Form, webpage form"""
 
         metadata = form.data
+        if 'csrf_token' in metadata.keys():
+            del metadata['csrf_token']
         return cls(**metadata)
 
     @classmethod
@@ -91,7 +88,21 @@ class APTDataCollectionMetadata(MetadataHolder):
 
 
 class GeneralMetadata(MetadataHolder):
-    """Class to hold general metadata about dataste"""
+    """Class to hold general metadata about a dataset"""
 
     def _get_schema_path(self):
         return os.path.join(schema_path, "GeneralMetadata.json")
+
+
+class APTSampleGeneralMetadata(MetadataHolder):
+    """Class to hold general metadata about a single APT sample"""
+
+    def _get_schema_path(self):
+        return os.path.join(schema_path, "SampleMetadata.json")
+
+
+class APTReconstructionMetadata(MetadataHolder):
+    """Class to hold metadata about a reconstruction"""
+
+    def _get_schema_path(self):
+        return os.path.join(schema_path, "ReconstructionMetadata.json")
