@@ -1,1 +1,1 @@
-TBD
+This template directory holds data associated with a single sample.
