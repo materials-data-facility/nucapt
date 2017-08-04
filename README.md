@@ -1,4 +1,5 @@
-# NUCAPT Publisher
+# NUCAPT Publication Manager
+[![Build Status](https://travis-ci.org/materials-data-facility/nucapt.svg?branch=master)](https://travis-ci.org/materials-data-facility/nucapt)
 
 The NUCAPT publication manager is designed to organize data produced by the Northwestern Univeristy Atom Probe
 Tomography facilty. The primary functions of this service is to create an maintain an organized filesystem, and
@@ -18,9 +19,9 @@ For Windows, the environmental can be set variable using: `set FLASK_APP=nucapt`
 
 Once the environment variable is set, run Flask by calling: `flask run`
 
-## Using NUCAPT Publisher
+## Using NUCAPT Publication Manager
 
-The
+Documentation TBD
 
 ## Support
 This work was performed under financial assistance award 70NANB14H012 from U.S. Department of Commerce,
