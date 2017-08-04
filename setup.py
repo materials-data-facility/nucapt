@@ -11,6 +11,6 @@ setup(
         'pyyaml==3.12',
         'six==1.10.0',
         'jsonschema==2.6.0',
-        'flask-wtf==0.14.2'
+        'beautifulsoup4==4.6.0'
     ],
 )
