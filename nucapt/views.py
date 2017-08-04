@@ -90,7 +90,9 @@ def create_sample(name):
         return redirect('/dataset/' + name)
 
     # Initialize form data
-    form = APTSampleForm(request.form)
+    form = APTSampleForm(request.form) \
+        if request.method == 'POST' \
+        else APTSampleForm(sample_name='Sample%d'%(len(dataset.list_samples()[0])+1))
 
     if request.method == 'POST' and form.validate():
         # attempt to validate the metadata
@@ -111,6 +113,7 @@ def create_sample(name):
 
         return redirect("/dataset/%s/sample/%s"%(name, sample_name))
 
+    # If GET request, make a new sample name
     return render_template('sample_create.html', form=form, name=name)
 
 

@@ -16,7 +16,7 @@
 </head>
 <body>
 <div class="container" enctype="multipart/form-data">
-    {% from "_utils.html" import make_header %}
+    {% from "_utils.html" import make_header, render_errors %}
     {{ make_header([(name,'/dataset/' + name), ('Create Sample', '/dataset/%s/sample/create'%name)]) }}
     <h1>Create Sample for {{ name }}</h1>
 
@@ -24,15 +24,7 @@
         as well as upload the raw data files. To make your data more usable by others (or even yourself in the future),
         you should also describe your sample.</p>
 
-    {% if errors is not none %}
-    <h2>Metadata Errors</h2>
-
-    <ol>
-        {% for error in errors %}
-        <li>{{ error }}</li>
-        {% endfor %}
-    </ol>
-    {% endif %}
+    {{ render_errors(errors) }}
 
     <form class='form-horizontal' method=post enctype="multipart/form-data">
 
