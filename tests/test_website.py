@@ -21,8 +21,9 @@ class TestWebsite(unittest.TestCase):
 
     def test_home(self):
         rv = self.app.get('/')
+        self.assertEquals(200, rv.status_code)
 
-    def test_dataset_create_and_list(self):
+    def test_dataset_methods(self):
         rv = self.app.get('/create')
         self.assertEquals(200, rv.status_code)
 
@@ -69,10 +70,30 @@ class TestWebsite(unittest.TestCase):
         datasets = os.listdir(manager.data_path)
         rv = self.app.get('/datasets')
         soup = BeautifulSoup(rv.data, 'html.parser')
-        print(soup)
         for dataset in datasets:
             self.assertTrue(dataset in str(rv.data))
 
+        # Test editing a dataset
+        rv = self.app.get('/dataset/%s/edit'%name)
+        self.assertEquals(200, rv.status_code)
+
+        soup = BeautifulSoup(rv.data, 'html.parser')
+        #  Make sure the form values are updated
+        for k,v in data.items():
+            if k is not 'abstract':
+                form = soup.find("input", {'name': k})
+                self.assertEquals(v, form['value'])
+            else:
+                form = soup.find("textarea", {'name': k})
+                self.assertEquals(v, form.next)
+
+        #  Update the form and repeat
+        data['authors-0-first_name'] = 'Not Logan'
+        rv = self.app.post('/dataset/%s/edit'%name, data=data)
+        self.assertEquals(302, rv.status_code)
+
+        metadata = manager.APTDataDirectory.load_dataset_by_name(name).get_metadata()
+        self.assertEquals('Not Logan', metadata['authors'][0]['first_name'])
 
 if __name__ == '__main__':
     unittest.main()
