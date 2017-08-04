@@ -1,5 +1,5 @@
 # NUCAPT Publication Manager
-[![Build Status](https://travis-ci.org/materials-data-facility/nucapt.svg?branch=master)](https://travis-ci.org/materials-data-facility/nucapt)
+[![Build Status](https://travis-ci.org/materials-data-facility/nucapt.svg?branch=master)](https://travis-ci.org/materials-data-facility/nucapt)[![Coverage Status](https://coveralls.io/repos/github/materials-data-facility/nucapt/badge.svg?branch=master)](https://coveralls.io/github/materials-data-facility/nucapt?branch=master)
 
 The NUCAPT publication manager is designed to organize data produced by the Northwestern Univeristy Atom Probe
 Tomography facilty. The primary functions of this service is to create an maintain an organized filesystem, and
