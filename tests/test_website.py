@@ -190,9 +190,18 @@ class TestWebsite(unittest.TestCase):
         # Create dataset and sample
         _, _, dataset_name = self.create_dataset()
         sample_data, _ = self.create_sample(dataset_name)
+        sample_name = sample_data['sample_name']
+
+        # Make sure reconstruction page renders
+        rv = self.app.get('/dataset/%s/sample/%s/recon/create'%(dataset_name, sample_name))
+
+        self.assertEquals(200, rv.status_code)
+
+        soup = BeautifulSoup(rv.data, 'html.parser')
+        name_field = soup.find('input', {'name':'name'})
+        self.assertEquals('Reconstruction1', name_field['value'])
 
         # Create the reconstruction
-        sample_name = sample_data['sample_name']
         recon_data, rv = self.create_reconstruction(dataset_name, sample_name)
 
         self.assertEquals(302, rv.status_code)
