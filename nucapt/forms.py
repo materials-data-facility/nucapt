@@ -77,9 +77,10 @@ class APTReconstructionForm(Form):
 
     title = StringField('Title', description='Title for this reconstruction')
     description = TextAreaField('Description', description='Longer-form description of this reconstruction')
-    metadata = FieldList(FormField(KeyValueForm), 'Sample Metadata',
+    metadata = FieldList(FormField(KeyValueForm), 'Reconstruction Metadata',
                          description='Structured metadata about reconstruction. Use to make indexing easier')
-    pos_file = FileField('POS File')
+    pos_file = FileField('POS File', render_kw={'accept': '.pos,.POS'})
+    rrng_file = FileField('RRNG File', render_kw={'accept': '.rrng,.RRNG'})
 
 
 class AddAPTReconstructionForm(APTReconstructionForm):

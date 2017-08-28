@@ -361,6 +361,7 @@ class APTReconstruction(DataDirectory):
         form_data = dict(form.data)
         del form_data['name']
         del form_data['pos_file']
+        del form_data['rrng_file']
         metadata = APTReconstructionMetadata(**form_data)
 
         # Make the directory and save the metadata
@@ -419,3 +420,10 @@ class APTReconstruction(DataDirectory):
             return self._find_file("POS")
         except:
             return self._find_file("pos")
+
+    def get_rrng_file(self):
+        """Get the RRNG file for this directory
+
+        :return: str, path to RRNG file"""
+
+        return self._find_file('RRNG')

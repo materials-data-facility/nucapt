@@ -230,11 +230,18 @@ def create_reconstruction(dataset_name, sample_name):
     if request.method == 'POST' and form.validate():
         try:
             errors = []
-            # check the file
+            # check the files
             pos_file = request.files['pos_file']
-            print(pos_file.filename)
             if not pos_file.filename.lower().endswith('.pos'):
-                errors.append('File must have the extension ".pos"')
+                errors.append('POS File must have the extension ".pos"')
+
+            rrng_file = request.files['rrng_file']
+            if not rrng_file.filename.lower().endswith('.rrng'):
+                errors.append('RRNG File must have extension ".rrng"')
+
+            # If errors, raise
+            if len(errors) > 0:
+                raise DatasetParseException(errors)
 
             # check the metadata
             recon_name = APTReconstruction.create_reconstruction(form, dataset_name, sample_name)
@@ -245,6 +252,7 @@ def create_reconstruction(dataset_name, sample_name):
         # If valid, upload the data
         recon = APTReconstruction.load_dataset_by_name(dataset_name, sample_name, recon_name)
         pos_file.save(os.path.join(recon.path, secure_filename(pos_file.filename)))
+        rrng_file.save(os.path.join(recon.path, secure_filename(rrng_file.filename)))
 
         return redirect("/dataset/%s/sample/%s/recon/%s" % (dataset_name, sample_name, recon_name))
     return render_template('reconstruction_create.html', form=form, dataset_name=dataset_name, sample_name=sample_name)
@@ -264,11 +272,12 @@ def view_reconstruction(dataset_name, sample_name, recon_name):
     try:
         # Get the POS and RRNG files
         pos_path = recon.get_pos_file()
+        rrng_path = recon.get_rrng_file()
 
     except DatasetParseException as exc:
         errors.extend(exc.errors)
     except:
-        pass
+        raise
     return render_template('reconstruction.html', dataset_name=dataset_name, sample_name=sample_name,
                            recon_name=recon_name, recon=recon, recon_metadata=recon_metadata, errors=errors,
-                           pos_path=pos_path)
+                           pos_path=pos_path, rrng_path=rrng_path)

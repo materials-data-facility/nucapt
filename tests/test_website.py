@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 
 import nucapt
 from nucapt import manager
-from nucapt.manager import APTSampleDirectory
+from nucapt.manager import APTSampleDirectory, APTReconstruction
 
 
 class TestWebsite(unittest.TestCase):
@@ -31,13 +31,14 @@ class TestWebsite(unittest.TestCase):
         rv = self.app.get('/create')
         self.assertEquals(200, rv.status_code)
 
-        data, rv, name = self._make_dataset()
+        data, rv, name = self.create_dataset()
 
         # Check to make sure we're on the right page
         soup = BeautifulSoup(rv.data, 'html.parser')
         self.assertTrue(name in str(soup.head.title))
 
         # Check to make sure the directory exists and has proper metadata
+        self.assertEquals(1, len(os.listdir(manager.data_path)))
         self.assertTrue(os.path.isdir(os.path.join(manager.data_path, name)))
         dataset = manager.APTDataDirectory.load_dataset_by_name(name)
         metadata = dataset.get_metadata()
@@ -67,7 +68,7 @@ class TestWebsite(unittest.TestCase):
             self.assertTrue(dataset in str(rv.data))
 
         # Test editing a dataset
-        rv = self.app.get('/dataset/%s/edit'%name)
+        rv = self.app.get('/dataset/%s/edit' % name)
         self.assertEquals(200, rv.status_code)
 
         soup = BeautifulSoup(rv.data, 'html.parser')
@@ -92,27 +93,10 @@ class TestWebsite(unittest.TestCase):
         rv = self.app.get('/dataset/bogus/edit')
         self.assertEquals(302, rv.status_code)
 
-    def _make_dataset(self):
-        """Make a sample dataset
-
-        :return: dict, values given to dataset creation form
-        """
-        # Make creation form
-        data = {
-            'title': 'Sample dataset',
-            'abstract': 'Dataset for unittest',
-            'authors-0-first_name': 'Logan',
-            'authors-0-last_name': 'Ward',
-            'authors-0-affiliation': 'UChicago'
-        }
-        rv = self.app.post('/create', data=data, follow_redirects=True)
-        name = '%s_Ward_0' % (date.today().strftime("%d%b%y"))
-        return data, rv, name
-
     def test_sample_method(self):
 
         # Make an initial dataset
-        _, _, dataset_name = self._make_dataset()
+        _, _, dataset_name = self.create_dataset()
 
         # Feed a bogus dataset name, make sure it is redirected
         rv = self.app.get('/dataset/bogus/sample/create')
@@ -200,7 +184,70 @@ class TestWebsite(unittest.TestCase):
         sample_metadata = sample.load_collection_metadata()
         self.assertEquals('A super one', sample_metadata['leap_model'])
 
+    def test_reconstructions(self):
+        """Test dealing with reconstructions"""
+
+        # Create dataset and sample
+        _, _, dataset_name = self.create_dataset()
+        sample_data, _ = self.create_sample(dataset_name)
+
+        # Create the reconstruction
+        sample_name = sample_data['sample_name']
+        recon_data, rv = self.create_reconstruction(dataset_name, sample_name)
+
+        self.assertEquals(302, rv.status_code)
+        self.assertTrue(os.path.exists(
+            os.path.join(manager.data_path, dataset_name, sample_name, 'Recon1')
+        ))
+        recon = APTReconstruction.load_dataset_by_name(dataset_name,
+                                                       sample_name,
+                                                       'Recon1')
+        self.assertTrue(os.path.isfile(recon.get_pos_file()))
+        self.assertTrue(os.path.isfile(recon.get_rrng_file()))
+
+        # Make sure the webpages update
+        rv = self.app.get('/dataset/%s/sample/%s/recon/%s'%(dataset_name, sample_name, 'Recon1'))
+
+        self.assertEquals(200, rv.status_code)
+        self.assertIn(recon.get_rrng_file().encode('ascii'), rv.data)
+        self.assertIn(recon.get_pos_file().encode('ascii'), rv.data)
+
+        rv = self.app.get('/dataset/%s/sample/%s'%(dataset_name, sample_name))
+
+        self.assertEquals(200, rv.status_code)
+        self.assertIn(b'Recon1', rv.data)
+
+    def create_reconstruction(self, dataset_name, sample_name, recon_name='Recon1'):
+        """Add a reconstruction to a sample
+
+        :param dataset_name: str, dataset name
+        :param sample_name: str, sample name
+        :param recon_name: str, reconstruction name
+        :return:
+            - dict, Data passed to form
+            - Response, response form server
+        """
+        data = {
+            'name': recon_name,
+            'title': 'Example reconstruction',
+            'description': 'Example reconstruction',
+            'pos_file': (BytesIO(b'Contents'), 'EXAMPLE.POS'),
+            'rrng_file': (BytesIO(b'Contents'), 'EXAMPLE.RRNG'),
+        }
+        return data, self.app.post(
+            '/dataset/%s/sample/%s/recon/create'%(dataset_name,sample_name),
+            data=data
+        )
+
     def create_sample(self, dataset_name, sample_name='Sample1'):
+        """Create a sample
+
+        :param dataset_name: str, Name of dataset
+        :param sample_name: str, Name of sample
+        :return: 
+            - dict, Data passed to form
+            - Response, Response from server
+        """
         data = {
             'sample_name': sample_name,
             'sample_form-sample_title': 'Example Sample',
@@ -213,6 +260,26 @@ class TestWebsite(unittest.TestCase):
         }
         rv = self.app.post('/dataset/%s/sample/create' % dataset_name, data=data)
         return data, rv
+
+    def create_dataset(self):
+        """Make a sample dataset
+
+        :return:
+            - dict, values given to dataset creation form
+            - Response, response from NUCAPT publication
+            - name, Expected dataset name <date>_Ward_0
+        """
+        # Make creation form
+        data = {
+            'title': 'Sample dataset',
+            'abstract': 'Dataset for unittest',
+            'authors-0-first_name': 'Logan',
+            'authors-0-last_name': 'Ward',
+            'authors-0-affiliation': 'UChicago'
+        }
+        rv = self.app.post('/create', data=data, follow_redirects=True)
+        name = '%s_Ward_0' % (date.today().strftime("%d%b%y"))
+        return data, rv, name
 
 
 if __name__ == '__main__':
