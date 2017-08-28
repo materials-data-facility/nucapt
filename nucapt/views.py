@@ -260,6 +260,7 @@ def view_reconstruction(dataset_name, sample_name, recon_name):
     except DatasetParseException as exc:
         errors = exc.errors
 
+    pos_path = None
     try:
         # Get the POS and RRNG files
         pos_path = recon.get_pos_file()

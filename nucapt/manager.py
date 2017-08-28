@@ -15,7 +15,7 @@ from nucapt.metadata import APTDataCollectionMetadata, GeneralMetadata, APTSampl
 # Key variables
 module_dir = os.path.dirname(os.path.abspath(nucapt.__file__))
 template_path = os.path.join(module_dir, '..', 'template_directory')
-data_path = os.path.join(module_dir, '..', 'working_directory')
+data_path = '/var/www/html/'
 
 
 @six.add_metaclass(ABCMeta)
@@ -415,4 +415,7 @@ class APTReconstruction(DataDirectory):
 
         :return: str, path to POS file"""
 
-        return self._find_file("POS")
+        try:
+            return self._find_file("POS")
+        except:
+            return self._find_file("pos")
