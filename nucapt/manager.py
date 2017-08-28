@@ -16,7 +16,7 @@ from nucapt.metadata import APTDataCollectionMetadata, GeneralMetadata, APTSampl
 # Key variables
 module_dir = os.path.dirname(os.path.abspath(nucapt.__file__))
 template_path = os.path.join(module_dir, '..', 'template_directory')
-data_path = '/var/www/html/'
+data_path = 'working_directory'
 
 # Useful lists
 _recon_data_dirs = ['Mass_Spectrum', 'Tip_Composition', '1D_Concentration_Profile', 'Proximity_Histogram',
@@ -46,7 +46,7 @@ class DataDirectory:
 
         :param file_type: str, extension of target file
         :return: Path to target file"""
-        r = re.compile(r'\.%s'%file_type)
+        r = re.compile(r'\.%s'%file_type, re.IGNORECASE)
         file = [f for f in os.listdir(self.path) if r.search(f)]
         if len(file) == 0:
             raise DatasetParseException('No %s files. Somehow, it got deleted.' % file_type)
@@ -368,6 +368,11 @@ class APTReconstruction(DataDirectory):
         del form_data['name']
         del form_data['pos_file']
         del form_data['rrng_file']
+
+        #   Remove fields with None values
+        for f in ['tip_radius', 'tip_image', 'shank_angle']:
+            if form_data[f] is None or form_data[f] is '':
+                del form_data[f]
         metadata = APTReconstructionMetadata(**form_data)
 
         # Make the directory and save the metadata
