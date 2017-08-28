@@ -223,13 +223,22 @@ def edit_sample_metadata(dataset_name, edit_page, my_form, sample, sample_metada
 
 @app.route("/dataset/<dataset_name>/sample/<sample_name>/recon/create", methods=['GET', 'POST'])
 def create_reconstruction(dataset_name, sample_name):
+    # Make sure this sample exists
+    try:
+        sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
+    except DatasetParseException as exc:
+        redirect("/dataset/%s/sample/%s"%(dataset_name, sample_name))
+
     # Create the form
-    form = AddAPTReconstructionForm(request.form)
+    form = AddAPTReconstructionForm(request.form) \
+            if request.method == 'POST' \
+            else AddAPTReconstructionForm(name='Reconstruction%d'%(len(sample.list_reconstructions()[0]) + 1))
 
     # Make sure it validates
     if request.method == 'POST' and form.validate():
         try:
             errors = []
+
             # check the files
             pos_file = request.files['pos_file']
             if not pos_file.filename.lower().endswith('.pos'):
@@ -253,8 +262,12 @@ def create_reconstruction(dataset_name, sample_name):
         recon = APTReconstruction.load_dataset_by_name(dataset_name, sample_name, recon_name)
         pos_file.save(os.path.join(recon.path, secure_filename(pos_file.filename)))
         rrng_file.save(os.path.join(recon.path, secure_filename(rrng_file.filename)))
+        if 'tip_image' in request.files:
+            tip_image = request.files['tip_image']
+            tip_image.save(os.path.join(recon.path, 'tip_image.%s'%(tip_image.filename.split(".")[-1])))
 
         return redirect("/dataset/%s/sample/%s/recon/%s" % (dataset_name, sample_name, recon_name))
+
     return render_template('reconstruction_create.html', form=form, dataset_name=dataset_name, sample_name=sample_name)
 
 
@@ -269,6 +282,7 @@ def view_reconstruction(dataset_name, sample_name, recon_name):
         errors = exc.errors
 
     pos_path = None
+    rrng_path = None
     try:
         # Get the POS and RRNG files
         pos_path = recon.get_pos_file()

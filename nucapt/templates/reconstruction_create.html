@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>NUCAPT: Create Sample for {{ name }}</title>
+    <title>NUCAPT: Add Reconstruction {{ sample_name }}</title>
     {% include '_includes.html' %}
     {% import '_leap_sample_forms.html' as mf %}
     {% from '_form_utils.html' import render_field, render_keyvalue_field %}
@@ -22,14 +22,15 @@
         ]) }}
     <h1>Add Reconstruction to {{ sample_name }}</h1>
 
-    <p>Add a new reconstruction to an sample. You need specify the shank angle and tip radius assumed for this
-        reconstruction
-        [LW 3Aug17: I'm not sure what this metadata means. They were listed under "3D Reconstruction" so I put them
-        here]</p>
+    <p>Add a new reconstruction to an sample. You need to specify the name of this reconstruction and the reconstruction method</p>
 
     {{ render_errors(errors) }}
 
     <form class='form-horizontal' method=post enctype="multipart/form-data">
+
+        <h2>General Metadata</h2>
+
+        <p>Simple description of this reconstruction.</p>
 
         {{ render_field(form.name) }}
 
@@ -39,7 +40,25 @@
 
         {{ render_keyvalue_field(form.metadata, 'metadata-table') }}
 
+        <h2>Reconstruction Settings</h2>
+
+        <p>Metadata about how this reconstruction was performed. Fill out as many are applicable.</p>
+
+        {{ render_field(form.reconstruction_method, class="") }}
+
+        {{ render_field(form.tip_radius) }}
+
+        {{ render_field(form.shank_angle) }}
+
+        {{ render_field(form.tip_image) }}
+
+        <h2>Data Files</h2>
+
+        <p>Data files holding the reconstruction data</p>
+
         {{ render_field(form.pos_file) }}
+
+        {{ render_field(form.rrng_file) }}
 
         <p><input type="submit" class="btn-lg btn-primary" value="Add Reconstruction"/></p>
 

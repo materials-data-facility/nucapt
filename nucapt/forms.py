@@ -1,6 +1,6 @@
-from wtforms import Form, StringField, TextAreaField, FieldList, FormField, RadioField, FloatField
+from wtforms import Form, StringField, TextAreaField, FieldList, FormField, RadioField, FloatField, DecimalField
 from wtforms.fields.simple import FileField
-from wtforms.validators import NumberRange, Regexp
+from wtforms.validators import NumberRange, Regexp, Optional
 
 
 class KeyValueForm(Form):
@@ -31,9 +31,9 @@ class APTCollectionMethodForm(Form):
 
     leap_model = StringField('LEAP Model', description="Model of LEAP used to collect data",
                              default='A nice one')
-    evaporation_mode = RadioField('Evaporation Mode', choices=[('voltage','Voltage'), ('laser','Laser')],
+    evaporation_mode = RadioField('Evaporation Mode', choices=[('voltage', 'Voltage'), ('laser', 'Laser')],
                                   description='Method used to evaporate sample',
-                                  default='v')
+                                  default='voltage')
     voltage_ratio = FloatField('Voltage Ratio', description='Voltage ratio used in evaporation (units)',
                                validators=[NumberRange(min=0, message='Voltage ratio must be positive')],
                                default=1)
@@ -77,6 +77,14 @@ class APTReconstructionForm(Form):
 
     title = StringField('Title', description='Title for this reconstruction')
     description = TextAreaField('Description', description='Longer-form description of this reconstruction')
+    reconstruction_method = RadioField('Reconstruction Method', description='Method used to reconstruct APT data',
+                                       choices=[('shank_angle', 'Shank Angle'), ('voltage_profile', 'Voltage Profile'),
+                                                ('tip_image', 'Tip Image')], default='shank_angle')
+    tip_radius = FloatField('Initial Tip Radius', description='Initial tip radius (units)', render_kw={'min': 0},
+                              validators=[Optional()])
+    shank_angle = FloatField('Shank Angle', description='Shank angle (units)', render_kw={'min': 0},
+                               validators=[Optional()])
+    tip_image = FileField('Tip Image', description='SEM image of tip')
     metadata = FieldList(FormField(KeyValueForm), 'Reconstruction Metadata',
                          description='Structured metadata about reconstruction. Use to make indexing easier')
     pos_file = FileField('POS File', render_kw={'accept': '.pos,.POS'})

@@ -13,15 +13,28 @@
       "type": "string",
       "description": "Short description of the sample"
     },
+    "reconstruction_method": {
+      "type": "string",
+      "description": "Reconstruction method",
+      "enum": [
+        "shank_angle",
+        "voltage_profile",
+        "tip_image"
+      ]
+    },
     "tip_radius": {
-      "type": "float",
+      "type": "number",
       "description": "Initial tip radius (units)",
       "minimum": 0
     },
     "shank_angle": {
-      "type": "float",
+      "type": "number",
       "description": "Shank angle (units)",
       "minimum": 0
+    },
+    "tip_image": {
+      "type": "string",
+      "description": "SEM image of tip"
     },
     "metadata": {
       "type": "array",

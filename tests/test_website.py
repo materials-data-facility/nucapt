@@ -204,6 +204,8 @@ class TestWebsite(unittest.TestCase):
                                                        'Recon1')
         self.assertTrue(os.path.isfile(recon.get_pos_file()))
         self.assertTrue(os.path.isfile(recon.get_rrng_file()))
+        self.assertTrue(os.path.isfile(os.path.join(recon.path, 'tip_image.jpg')))
+        self.assertNotIn('shank_angle', recon.load_metadata().metadata.keys())
 
         for d in manager._recon_data_dirs:
             self.assertTrue(os.path.isdir(os.path.join(recon.path, d)))
@@ -234,7 +236,9 @@ class TestWebsite(unittest.TestCase):
             'name': recon_name,
             'title': 'Example reconstruction',
             'description': 'Example reconstruction',
-            'pos_file': (BytesIO(b'Contents'), 'EXAMPLE.POS'),
+            'tip_radius': 1,
+            'tip_image': (BytesIO(b'<image>'), 'tip.jpg'),
+            'pos_file': (BytesIO(b'Contents'), 'EXAMPLE.pos'),
             'rrng_file': (BytesIO(b'Contents'), 'EXAMPLE.RRNG'),
         }
         return data, self.app.post(
