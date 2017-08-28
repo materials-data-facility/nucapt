@@ -18,6 +18,10 @@ module_dir = os.path.dirname(os.path.abspath(nucapt.__file__))
 template_path = os.path.join(module_dir, '..', 'template_directory')
 data_path = '/var/www/html/'
 
+# Useful lists
+_recon_data_dirs = ['Mass_Spectrum', 'Tip_Composition', '1D_Concentration_Profile', 'Proximity_Histogram',
+                    '2D_Concentration_Map', 'Component_Distribution', 'Visualization']
+
 
 @six.add_metaclass(ABCMeta)
 class DataDirectory:
@@ -372,6 +376,10 @@ class APTReconstruction(DataDirectory):
             raise DatasetParseException('Recon %s already exists' % (recon_name))
         os.mkdir(path)
         recon = cls.load_dataset_by_path(path)
+
+        # Make the subdirectories for different kinds of data
+        for d in _recon_data_dirs:
+            os.mkdir(os.path.join(path, d))
 
         metadata.to_yaml(recon._get_metadata_path())
 

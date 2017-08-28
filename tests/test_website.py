@@ -205,6 +205,9 @@ class TestWebsite(unittest.TestCase):
         self.assertTrue(os.path.isfile(recon.get_pos_file()))
         self.assertTrue(os.path.isfile(recon.get_rrng_file()))
 
+        for d in manager._recon_data_dirs:
+            self.assertTrue(os.path.isdir(os.path.join(recon.path, d)))
+
         # Make sure the webpages update
         rv = self.app.get('/dataset/%s/sample/%s/recon/%s'%(dataset_name, sample_name, 'Recon1'))
 
