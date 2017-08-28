@@ -1,6 +1,7 @@
 """Operations relating to managing data folders on NUCAPT servers"""
 
 import os
+import re
 from abc import abstractmethod, ABCMeta
 from datetime import date
 from glob import glob
@@ -41,7 +42,8 @@ class DataDirectory:
 
         :param file_type: str, extension of target file
         :return: Path to target file"""
-        file = glob(os.path.join(self.path, '*.%s' % file_type))
+        r = re.compile(r'\.%s'%file_type)
+        file = [f for f in os.listdir(self.path) if r.search(f)]
         if len(file) == 0:
             raise DatasetParseException('No %s files. Somehow, it got deleted.' % file_type)
         if len(file) > 1:
@@ -416,10 +418,7 @@ class APTReconstruction(DataDirectory):
 
         :return: str, path to POS file"""
 
-        try:
-            return self._find_file("POS")
-        except:
-            return self._find_file("pos")
+        return self._find_file("POS")
 
     def get_rrng_file(self):
         """Get the RRNG file for this directory
