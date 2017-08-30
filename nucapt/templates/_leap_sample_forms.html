@@ -57,14 +57,20 @@
     <script>
         $(document).ready(function () {
             // Script for selectively showing only part of the form
+            var ep_form = $('#electropolish_form');
+            var fib_form = $('#fib_form');
             var pickSubForm = function () {
                 var method = $("input[name='{{ form_prefix }}preparation_method']:checked").val();
-                $('#electropolish_form').hide();
-                $('#fib_form').hide();
-                if (method === "fib") {
-                    $("#fib_form").show();
+                ep_form .hide();
+                fib_form.hide();
+                if (method === "fib_lift_out") {
+                    fib_form.show();
+                    fib_form.find('input').attr('required', '');
+                    ep_form.find('input').removeAttr('required');
                 } else {
-                    $("#electropolish_form").show();
+                    ep_form.show();
+                    fib_form.find('input').removeAttr('required');
+                    ep_form.find('input').attr('required', '');
                 }
             };
             pickSubForm();
@@ -130,10 +136,10 @@
             </tr>
             {% for step in form.electropolish %}
                 <tr>
-                    <td>{{ step.solution() }}</td>
-                    <td>{{ step.voltage() }}</td>
-                    <td>{{ step.temperature() }}</td>
-                    <td>{{ step.electrode_shape() }}</td>
+                    <td>{{ step.solution(required="") }}</td>
+                    <td>{{ step.voltage(required="") }}</td>
+                    <td>{{ step.temperature(required="") }}</td>
+                    <td>{{ step.electrode_shape(required="") }}</td>
                 </tr>
             {% endfor %}
         </table>

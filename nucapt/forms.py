@@ -87,7 +87,7 @@ class APTSamplePreparationForm(Form):
     """Description of how an APT sample was prepared"""
 
     preparation_method = RadioField('Preparation Method', description='Method used to create sample',
-                                    choices=[('electropolish', 'Electropolishing'), ('fib', 'FIB Lift Out')],
+                                    choices=[('electropolish', 'Electropolishing'), ('fib_lift_out', 'FIB Lift Out')],
                                     default='electropolish')
     electropolish = FieldList(FormField(APTSampleElectropolishingForm), 'Electropolishing',
                               description='Electropolishing step', min_entries=1)

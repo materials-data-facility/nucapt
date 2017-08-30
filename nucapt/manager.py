@@ -247,7 +247,7 @@ class APTSampleDirectory(DataDirectory):
 
         return sample_name
 
-    def _update_metadata_form_form(self, cls, path, form):
+    def _update_metadata_from_form(self, cls, path, form):
         """Take metadata from form, save to disk
 
         :param cls: Metadata handling class
@@ -273,7 +273,7 @@ class APTSampleDirectory(DataDirectory):
         :param form: APTSampleDescriptionForm, metadata object
         :return: path to metadata"""
 
-        return self._update_metadata_form_form(APTSampleGeneralMetadata,
+        return self._update_metadata_from_form(APTSampleGeneralMetadata,
                                                self._get_sample_information_path(),
                                                form)
 
@@ -299,7 +299,7 @@ class APTSampleDirectory(DataDirectory):
         :param form: Metadata to be parsed
         :return: path to metadata"""
 
-        return self._update_metadata_form_form(APTDataCollectionMetadata,
+        return self._update_metadata_from_form(APTDataCollectionMetadata,
                                                self._get_collection_metadata_path(),
                                                form)
 
@@ -319,16 +319,23 @@ class APTSampleDirectory(DataDirectory):
         """
         return os.path.join(self.path, 'SamplePreparation.yaml')
 
-    def update_preprepation_metadata(self, form):
+    def update_preparation_metadata(self, form):
         """Update preparation metadata
 
         :param form: Form holding new metadata
         :return: path to metadata
         """
 
-        self._update_metadata_form_form(APTSamplePreperationMetadata,
+        self._update_metadata_from_form(APTSamplePreperationMetadata,
                                         self._get_preparation_metadata_path(),
                                         form)
+
+    def load_preparation_metadata(self):
+        """Load metadata about how this sample was prepared
+
+        :return: APTSamplePreperationMetadata"""
+
+        return APTSamplePreperationMetadata.from_yaml(self._get_preparation_metadata_path())
 
     def get_preparation_metadata(self):
         """Load the sample preparation information from disk

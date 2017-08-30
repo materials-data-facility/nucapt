@@ -43,7 +43,7 @@ class MetadataHolder:
             schema = json.load(fp)
         validator = Draft4Validator(schema)
         is_valid = validator.is_valid(self.metadata)
-        errors = [e.message for e in validator.iter_errors(self.metadata)]
+        errors = [str(e) for e in validator.iter_errors(self.metadata)]
         return is_valid, errors
 
     @classmethod
@@ -119,14 +119,13 @@ class APTSamplePreperationMetadata(MetadataHolder):
     def from_form(cls, form):
         metadata = form.data
 
-        # Get the method, clear that key
+        # Get the method
         method = metadata['preparation_method']
-        del metadata['preparation_method']
 
         # Keep only the metadata from that method
         if method == 'electropolish':
             del metadata['fib_lift_out']
         else:
-            del metadata['electropolishing']
+            del metadata['electropolish']
 
         return cls(**metadata)

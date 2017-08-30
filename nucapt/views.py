@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 from nucapt import app
 from nucapt.exceptions import DatasetParseException
 from nucapt.forms import DatasetForm, APTSampleForm, APTCollectionMethodForm, APTSampleDescriptionForm, \
-    AddAPTReconstructionForm, APTReconstructionForm
+    AddAPTReconstructionForm, APTSamplePreparationForm
 from nucapt.manager import APTDataDirectory, APTSampleDirectory, APTReconstruction
 import nucapt.manager as manager
 
@@ -178,6 +178,29 @@ def edit_collection_information(dataset_name, sample_name):
     my_form = APTCollectionMethodForm
     sample_metadata = sample.load_collection_metadata()
     updated_func = sample.update_collection_metadata
+
+    return edit_sample_metadata(dataset_name, edit_page, my_form, sample, sample_metadata, sample_name, updated_func)
+
+
+@app.route("/dataset/<dataset_name>/sample/<sample_name>/edit_preparation", methods=['GET', 'POST'])
+def edit_sample_preparation(dataset_name, sample_name):
+    """View metadata about sample"""
+
+    # Load in the sample by name
+    try:
+        sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
+    except DatasetParseException as exc:
+        return redirect("/dataset/%s/sample/%s"%(dataset_name, sample_name))
+
+    # Load in the metadata
+    edit_page = 'sample_prepform.html'
+    my_form = APTSamplePreparationForm
+    try:
+        sample_metadata = sample.get_preparation_metadata()
+    except DatasetParseException as exc:
+        print(exc.errors)
+
+    updated_func = sample.update_preparation_metadata
 
     return edit_sample_metadata(dataset_name, edit_page, my_form, sample, sample_metadata, sample_name, updated_func)
 

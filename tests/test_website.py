@@ -189,6 +189,29 @@ class TestWebsite(unittest.TestCase):
         prep_metadata = sample.get_preparation_metadata()
         self.assertEquals('water', prep_metadata['electropolish'][0]['solution'])
 
+        rv = self.app.get('/dataset/%s/sample/%s/edit_preparation' % (dataset_name, 'Sample1'))
+
+        self.assertEquals(200, rv.status_code)
+
+        new_prep = {
+            'preparation_method': 'fib_lift_out',
+            'fib_lift_out-lift_out_step-capping_material': 'metal',
+            'fib_lift_out-lift_out_step-ion_current': 1.,
+            'fib_lift_out-lift_out_step-ion_voltage': 2,
+            'fib_lift_out-lift_out_step-sample_orientation': 'up',
+            'fib_lift_out-lift_out_step-wedge_dimension': 1,
+            'fib_lift_out-sharpening_step-final_ion_current': 1,
+            'fib_lift_out-sharpening_step-final_ion_voltage': 2,
+        }
+
+        rv = self.app.post('/dataset/%s/sample/%s/edit_preparation' % (dataset_name, 'Sample1'), data=new_prep)
+
+        self.assertEquals(302, rv.status_code)
+
+        prep_metadata = sample.get_preparation_metadata()
+        self.assertNotIn('electropolish', prep_metadata.metadata)
+        self.assertEquals('metal', prep_metadata['fib_lift_out']['lift_out_step']['capping_material'])
+
     def test_reconstructions(self):
         """Test dealing with reconstructions"""
 

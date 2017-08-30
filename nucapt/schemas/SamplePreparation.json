@@ -5,6 +5,11 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "preparation_method": {
+      "type": "string",
+      "description": "Method used to create sample",
+      "enum": ["electropolish", "fib_lift_out"]
+    },
     "electropolish": {
       "type": "array",
       "description": "Sample preparation using electropolishing.",
