@@ -2,33 +2,33 @@
 
 {% macro leap_metadata_form(form, table_name="other-table") -%}
 
-{{ render_field(form.leap_model) }}
+    {{ render_field(form.leap_model) }}
 
-{{ render_field(form.evaporation_mode, class="") }}
+    {{ render_field(form.evaporation_mode, class="") }}
 
-{{ render_field(form.voltage_ratio) }}
+    {{ render_field(form.voltage_ratio) }}
 
-{{ render_field(form.laser_pulse_energy) }}
+    {{ render_field(form.laser_pulse_energy) }}
 
-{{ render_field(form.temperature) }}
+    {{ render_field(form.temperature) }}
 
-{{ render_field(form.detection_rate) }}
+    {{ render_field(form.detection_rate) }}
 
-{{ render_field(form.starting_voltage) }}
+    {{ render_field(form.starting_voltage) }}
 
-{{ render_field(form.chamber_pressure) }}
+    {{ render_field(form.chamber_pressure) }}
 
-{{ render_keyvalue_field(form.misc, table_name) }}
+    {{ render_keyvalue_field(form.misc, table_name) }}
 {%- endmacro %}
 
 {% macro sample_form(form) -%}
-{{ render_field(form.sample_title) }}
-{{ render_field(form.sample_description) }}
-{{ render_keyvalue_field(form.metadata, "description_metadata") }}
+    {{ render_field(form.sample_title) }}
+    {{ render_field(form.sample_description) }}
+    {{ render_keyvalue_field(form.metadata, "description_metadata") }}
 {%- endmacro %}
 
 {% macro recon_form(form) -%}
-<h2>General Metadata</h2>
+    <h2>General Metadata</h2>
 
     <p>Simple description of this reconstruction.</p>
 
@@ -49,5 +49,121 @@
     {{ render_field(form.shank_angle) }}
 
     {{ render_field(form.tip_image) }}
+
+{%- endmacro %}
+
+{% macro sample_prep_form(form, form_prefix) -%}
+
+    <script>
+        $(document).ready(function () {
+            // Script for selectively showing only part of the form
+            var pickSubForm = function () {
+                var method = $("input[name='{{ form_prefix }}preparation_method']:checked").val();
+                $('#electropolish_form').hide();
+                $('#fib_form').hide();
+                if (method === "fib") {
+                    $("#fib_form").show();
+                } else {
+                    $("#electropolish_form").show();
+                }
+            };
+            pickSubForm();
+
+            $("input[name='{{ form_prefix }}preparation_method']").click(pickSubForm);
+
+            // Script for adding / removing EP steps
+            var getNumRows = function () {
+                return $("#ep_table").find("tr").length - 1;
+            };
+            if (getNumRows() === 1) {
+                $("#ep-delete-row").hide(); // Remove this button at first
+            }
+
+            $("#ep-add-row").click(function () {
+                var numRows = getNumRows();
+
+                // Make a new form row
+                var tr = document.createElement("tr");
+                ['solution', 'voltage', 'temperature', 'electrode_shape'].forEach(function (e) {
+                    var td = document.createElement("td");
+                    var input = document.createElement("input");
+                    input.id = '{{ form_prefix }}electropolish-' + numRows + "-" + e;
+                    input.name = input.id;
+                    input.type = 'text';
+                    td.appendChild(input);
+                    tr.appendChild(td)
+                });
+                $("#ep_table tr:last").after(tr);
+
+                if (numRows >= 1) {
+                    $("#ep-delete-row").show()
+                }
+            });
+
+            $("#ep-delete-row").click(function () {
+                var numRows = getNumRows();
+                if (numRows > 1) {
+                    $("#ep_table tr:last").remove();
+                }
+                if (numRows == 2) {
+                    $("#ep-delete-row").hide();
+                }
+            })
+        });
+    </script>
+
+    <p>Information about how the APT sample was created</p>
+
+    {{ render_field(form.preparation_method, class="") }}
+
+    <div id="electropolish_form">
+        <h3>Electropolishing Metadata</h3>
+
+        <p>Information about the electropolishing process</p>
+
+        <table class="table" id="ep_table">
+            <tr>
+                <th>Solution</th>
+                <th>Voltage (V)</th>
+                <th>Temperature (C)</th>
+                <th>Electrode Shape</th>
+            </tr>
+            {% for step in form.electropolish %}
+                <tr>
+                    <td>{{ step.solution() }}</td>
+                    <td>{{ step.voltage() }}</td>
+                    <td>{{ step.temperature() }}</td>
+                    <td>{{ step.electrode_shape() }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+        <p>
+            <button type="button" class="btn-sm btn-primary" id="ep-add-row">Add Step</button>
+            <button type="button" class="btn-sm btn-danger" id="ep-delete-row">Delete Step</button>
+        </p>
+    </div>
+
+    <div id="fib_form">
+        <h3>FIB Lift-out Metadata</h3>
+
+        <p>Information about the FIB lift-out process</p>
+
+        <h4>Lift-Out Step</h4>
+
+        <p>Metadata regarding the lift out</p>
+
+        {{ render_field(form.fib_lift_out.lift_out_step.capping_material) }}
+        {{ render_field(form.fib_lift_out.lift_out_step.wedge_dimension) }}
+        {{ render_field(form.fib_lift_out.lift_out_step.ion_voltage) }}
+        {{ render_field(form.fib_lift_out.lift_out_step.ion_current) }}
+        {{ render_field(form.fib_lift_out.lift_out_step.sample_orientation) }}
+
+        <h4>Sharpening Step</h4>
+
+        <p>Data about the sharpening step</p>
+
+        {{ render_field(form.fib_lift_out.sharpening_step.final_ion_voltage) }}
+        {{ render_field(form.fib_lift_out.sharpening_step.final_ion_current) }}
+    </div>
 
 {%- endmacro %}

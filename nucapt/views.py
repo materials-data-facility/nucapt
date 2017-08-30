@@ -227,7 +227,7 @@ def create_reconstruction(dataset_name, sample_name):
     try:
         sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
     except DatasetParseException as exc:
-        redirect("/dataset/%s/sample/%s"%(dataset_name, sample_name))
+        return redirect("/dataset/%s/sample/%s"%(dataset_name, sample_name))
 
     # Create the form
     form = AddAPTReconstructionForm(request.form) \

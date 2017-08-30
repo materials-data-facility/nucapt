@@ -50,6 +50,50 @@ class APTCollectionMethodForm(Form):
     misc = FieldList(FormField(KeyValueForm), 'Other Metadata', description='Anything else that is pertinent')
 
 
+class APTSampleElectropolishingForm(Form):
+    """Form for an electropolishing step"""
+
+    solution = StringField('Solution', description='Electropolishing solution', validators=[Optional()])
+    voltage = FloatField('Voltage', description='Electropolishing voltage (V)', validators=[Optional()])
+    temperature = FloatField('Temperature', description='Electropolishing temperature (C)', validators=[Optional()])
+    electrode_shape = StringField('Electrode Shape', description='Shape of electrode', validators=[Optional()])
+
+
+class APTFIBLiftoutStepForm(Form):
+    """Form for liftout_step"""
+
+    capping_material = StringField('Capping Material', description='Capping material', validators=[Optional()])
+    wedge_dimension = FloatField('Wedge Dimension', description='Wedge dimension (&mu;m)', validators=[Optional()])
+    ion_voltage = FloatField('Ion Voltage', description='Ion voltage (V)', validators=[Optional()])
+    ion_current = FloatField('Ion Current', description='Ion current (nA)', validators=[Optional()])
+    sample_orientation = StringField('Sample Orientation', description='Sample orientation', validators=[Optional()])
+
+
+class APTSharpeningStepForm(Form):
+    """For for the sharpening step"""
+
+    final_ion_voltage = FloatField('Final Ion Voltage', description='Final ion voltage (V)', validators=[Optional()])
+    final_ion_current = FloatField('Final Ion Current', description='Final ion current (nA)', validators=[Optional()])
+
+
+class APTFIBPreparationForm(Form):
+    """Form for describing FIB liftout"""
+
+    lift_out_step = FormField(APTFIBLiftoutStepForm, 'Lift Out Step', description='Lift out step metadata')
+    sharpening_step = FormField(APTSharpeningStepForm, 'Sharpening Step', description='Sharpening step metadata')
+
+
+class APTSamplePreparationForm(Form):
+    """Description of how an APT sample was prepared"""
+
+    preparation_method = RadioField('Preparation Method', description='Method used to create sample',
+                                    choices=[('electropolish', 'Electropolishing'), ('fib', 'FIB Lift Out')],
+                                    default='electropolish')
+    electropolish = FieldList(FormField(APTSampleElectropolishingForm), 'Electropolishing',
+                              description='Electropolishing step', min_entries=1)
+    fib_lift_out = FormField(APTFIBPreparationForm, 'FIB liftout metadata')
+
+
 class APTSampleDescriptionForm(Form):
     """Description of a LEAP sample"""
 
@@ -69,6 +113,7 @@ class APTSampleForm(Form):
                                                                  'characters: A-Z, a-z, 0-9, and _')])
     sample_form = FormField(APTSampleDescriptionForm, description="Metadata for the ")
     collection_form = FormField(APTCollectionMethodForm, description="Metadata for data collection method")
+    preparation_form = FormField(APTSamplePreparationForm, description="Metadata for sample preparation")
     rhit_file = FileField('RHIT file')
 
 

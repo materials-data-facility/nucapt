@@ -169,6 +169,7 @@ class TestWebsite(unittest.TestCase):
 
         # Edit the collection information
         sample_metadata = sample.load_collection_metadata()
+        self.assertEquals('A nice one', sample_metadata['leap_model'])
 
         rv = self.app.get('/dataset/%s/sample/%s/edit_collection' % (dataset_name, 'Sample1'))
         self.assertEquals(200, rv.status_code)
@@ -184,6 +185,10 @@ class TestWebsite(unittest.TestCase):
         sample_metadata = sample.load_collection_metadata()
         self.assertEquals('A super one', sample_metadata['leap_model'])
 
+        # Check sample preparation metadata
+        prep_metadata = sample.get_preparation_metadata()
+        self.assertEquals('water', prep_metadata['electropolish'][0]['solution'])
+
     def test_reconstructions(self):
         """Test dealing with reconstructions"""
 
@@ -198,7 +203,7 @@ class TestWebsite(unittest.TestCase):
         self.assertEquals(200, rv.status_code)
 
         soup = BeautifulSoup(rv.data, 'html.parser')
-        name_field = soup.find('input', {'name':'name'})
+        name_field = soup.find('input', {'name': 'name'})
         self.assertEquals('Reconstruction1', name_field['value'])
 
         # Create the reconstruction
@@ -273,6 +278,11 @@ class TestWebsite(unittest.TestCase):
             'sample_form-metadata-0-value': '2 hours',
             'collection_form-leap_model': 'A nice one',
             'collection_form-evaporation_mode': 'laser',
+            'preparation_form-preparation_method': 'electropolish',
+            'preparation_form-electropolish-0-solution': 'water',
+            'preparation_form-electropolish-0-temperature': 1,
+            'preparation_form-electropolish-0-voltage': 1,
+            'preparation_form-electropolish-0-electrode_shape': 'round',
             'rhit_file': (BytesIO(b'My RHIT file contents'), 'EXAMPLE.RHIT')
         }
         rv = self.app.post('/dataset/%s/sample/create' % dataset_name, data=data)

@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "SamplePreparation",
+  "description": "Record describing how an APT sample was prepared",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "electropolish": {
+      "type": "array",
+      "description": "Sample preparation using electropolishing.",
+      "items": {
+        "type": "object",
+        "description": "Electropolishing step",
+        "additionalProperties": false,
+        "properties": {
+          "solution": {
+            "type": "string",
+            "description": "Solution used during electropolishing"
+          },
+          "voltage": {
+            "type": "number",
+            "description": "Voltage applied during electropolishing. Units: volts"
+          },
+          "temperature": {
+            "type": "number",
+            "description": "Temperature. Units: celcius"
+          },
+          "electrode_shape": {
+            "type": "string",
+            "description": "Shape of the electrode"
+          }
+        }
+      }
+    },
+    "fib_lift_out": {
+      "type": "object",
+      "description": "Sample preparation using FIB lift out",
+      "additionalProperties": false,
+      "properties": {
+        "lift_out_step": {
+          "type": "object",
+          "description": "Lift out step",
+          "additionalProperties": false,
+          "properties": {
+            "capping_material": {
+              "type": "string",
+              "description": "Capping material"
+            },
+            "wedge_dimension": {
+              "type": "number",
+              "description": "Wedge dimesions: Units: um"
+            },
+            "ion_voltage": {
+              "type": "number",
+              "description": "Ion voltage. Units: V"
+            },
+            "ion_current": {
+              "type": "number",
+              "description": "Ion current. Units: nA"
+            },
+            "sample_orientation": {
+              "type": "string",
+              "description": "Sample orientation"
+            }
+          }
+        },
+        "sharpening_step": {
+          "type": "object",
+          "description": "Shaprening step",
+          "additionalProperties": false,
+          "properties": {
+            "final_ion_voltage": {
+              "type": "number",
+              "description": "Ion voltage. Units: V"
+            },
+            "final_ion_current": {
+              "type": "number",
+              "description": "Ion current. Units: nA"
+            }
+          }
+        }
+      }
+    }
+  }
+}

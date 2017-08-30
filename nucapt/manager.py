@@ -11,7 +11,7 @@ import six
 import nucapt
 from nucapt.exceptions import DatasetParseException
 from nucapt.metadata import APTDataCollectionMetadata, GeneralMetadata, APTSampleGeneralMetadata, \
-    APTReconstructionMetadata
+    APTReconstructionMetadata, APTSamplePreperationMetadata
 
 # Key variables
 module_dir = os.path.dirname(os.path.abspath(nucapt.__file__))
@@ -46,7 +46,7 @@ class DataDirectory:
 
         :param file_type: str, extension of target file
         :return: Path to target file"""
-        r = re.compile(r'\.%s'%file_type, re.IGNORECASE)
+        r = re.compile(r'\.%s' % file_type, re.IGNORECASE)
         file = [f for f in os.listdir(self.path) if r.search(f)]
         if len(file) == 0:
             raise DatasetParseException('No %s files. Somehow, it got deleted.' % file_type)
@@ -227,6 +227,7 @@ class APTSampleDirectory(DataDirectory):
         # Parse the metadata
         general = APTSampleGeneralMetadata.from_form(form.sample_form)
         collection = APTDataCollectionMetadata.from_form(form.collection_form)
+        preperation = APTSamplePreperationMetadata.from_form(form.preparation_form)
 
         # Create a directory and save metadata in it
         sample_name = form.sample_name.data
@@ -242,8 +243,22 @@ class APTSampleDirectory(DataDirectory):
 
         general.to_yaml(sample._get_sample_information_path())
         collection.to_yaml(sample._get_collection_metadata_path())
+        preperation.to_yaml(sample._get_preparation_metadata_path())
 
         return sample_name
+
+    def _update_metadata_form_form(self, cls, path, form):
+        """Take metadata from form, save to disk
+
+        :param cls: Metadata handling class
+        :param path: Path to save metadata
+        :param form: Form to parse
+        :return: Path to metadata
+        """
+
+        metadata = cls.from_form(form)
+        metadata.to_yaml(path)
+        return path
 
     def _get_sample_information_path(self):
         """Get path to APT sample information
@@ -258,13 +273,9 @@ class APTSampleDirectory(DataDirectory):
         :param form: APTSampleDescriptionForm, metadata object
         :return: path to metadata"""
 
-        # Validate the form
-        metadata = APTSampleGeneralMetadata.from_form(form)
-
-        # Save it
-        metadata_path = self._get_sample_information_path()
-        metadata.to_yaml(metadata_path)
-        return metadata_path
+        return self._update_metadata_form_form(APTSampleGeneralMetadata,
+                                               self._get_sample_information_path(),
+                                               form)
 
     def load_sample_information(self):
         """Load in APT collection method metadata, if available
@@ -285,14 +296,12 @@ class APTSampleDirectory(DataDirectory):
     def update_collection_metadata(self, form):
         """Save metadata regarding the APT collection method to disk
 
-        :param metadata: APTDataCollectionMetadata, metadata object
+        :param form: Metadata to be parsed
         :return: path to metadata"""
 
-        metadata = APTDataCollectionMetadata.from_form(form)
-
-        metadata_path = self._get_collection_metadata_path()
-        metadata.to_yaml(metadata_path)
-        return metadata_path
+        return self._update_metadata_form_form(APTDataCollectionMetadata,
+                                               self._get_collection_metadata_path(),
+                                               form)
 
     def load_collection_metadata(self):
         """Load in APT collection method metadata, if available
@@ -302,6 +311,33 @@ class APTSampleDirectory(DataDirectory):
         if os.path.isfile(self._get_collection_metadata_path()):
             return APTDataCollectionMetadata.from_yaml(self._get_collection_metadata_path())
         return None
+
+    def _get_preparation_metadata_path(self):
+        """Get path to sample preparation metadata
+
+        :return: str, path
+        """
+        return os.path.join(self.path, 'SamplePreparation.yaml')
+
+    def update_preprepation_metadata(self, form):
+        """Update preparation metadata
+
+        :param form: Form holding new metadata
+        :return: path to metadata
+        """
+
+        self._update_metadata_form_form(APTSamplePreperationMetadata,
+                                        self._get_preparation_metadata_path(),
+                                        form)
+
+    def get_preparation_metadata(self):
+        """Load the sample preparation information from disk
+
+        :return: dict, Preparation metadata
+        """
+        return APTSamplePreperationMetadata.from_yaml(
+            self._get_preparation_metadata_path()
+        )
 
     def get_rhit_path(self):
         """Get the path to the RHIT file
@@ -331,9 +367,9 @@ class APTSampleDirectory(DataDirectory):
                     metadata.append(managers[-1].load_metadata())
                 except DatasetParseException as exc:
                     metadata.append({})
-                    errors.extend(["%s:%s"%(recon_name, x) for x in exc.errors])
+                    errors.extend(["%s:%s" % (recon_name, x) for x in exc.errors])
             except DatasetParseException as exc:
-                errors.extend(["%s:%s"%(recon_name, x) for x in exc.errors])
+                errors.extend(["%s:%s" % (recon_name, x) for x in exc.errors])
         return managers, metadata, errors
 
 

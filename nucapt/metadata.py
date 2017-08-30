@@ -53,8 +53,6 @@ class MetadataHolder:
         :param form: Form, webpage form"""
 
         metadata = form.data
-        if 'csrf_token' in metadata.keys():
-            del metadata['csrf_token']
         return cls(**metadata)
 
     @classmethod
@@ -109,3 +107,26 @@ class APTReconstructionMetadata(MetadataHolder):
 
     def _get_schema_path(self):
         return os.path.join(schema_path, "ReconstructionMetadata.json")
+
+
+class APTSamplePreperationMetadata(MetadataHolder):
+    """Class to hold metadata about sample preparation"""
+
+    def _get_schema_path(self):
+        return os.path.join(schema_path, "SamplePreparation.json")
+
+    @classmethod
+    def from_form(cls, form):
+        metadata = form.data
+
+        # Get the method, clear that key
+        method = metadata['preparation_method']
+        del metadata['preparation_method']
+
+        # Keep only the metadata from that method
+        if method == 'electropolish':
+            del metadata['fib_lift_out']
+        else:
+            del metadata['electropolishing']
+
+        return cls(**metadata)

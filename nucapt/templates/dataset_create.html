@@ -7,11 +7,12 @@
     {% from '_form_utils.html' import render_field %}
     <script type = 'text/javascript' language="javascript">
         $(document).ready(function() {
-            $("#btn-del-row").hide(); // Remove this button at first
-
             var getNumRows = function() {
                 return $("#author_table").find("tr").length - 1;
             };
+            if (getNumRows() == 1) {
+                $("#btn-del-row").hide(); // Remove this button at first
+            }
 
             $("#btn-add-row").click(function() {
                 var numRows = getNumRows();

@@ -32,11 +32,6 @@
       "description": "Laser frequency (units)",
       "minimum": 0
     },
-    "laser_pulse_energy": {
-      "type": "number",
-      "description": "Laser pulse energy used in evaporation (units)",
-      "minimum": 0
-    },
     "temperature": {
       "type": "number",
       "description": "Temperature (units)"
