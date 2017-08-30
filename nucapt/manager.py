@@ -352,11 +352,13 @@ class APTReconstruction(DataDirectory):
         return '_'.join([dataset, sample, recon])
 
     @classmethod
-    def create_reconstruction(cls, form, dataset_name, sample_name):
+    def create_reconstruction(cls, form, dataset_name, sample_name, tip_image):
         """Add a new construction to a sample
 
         :param form: AddReconstructionForm, Form from web service
-        :param
+        :param dataset_name: str, name of dataset
+        :param sample_name: str, name of sample
+        :param tip_image: str, path to tip image
         :return: str, Reconstruction name
         """
 
@@ -374,6 +376,10 @@ class APTReconstruction(DataDirectory):
             if form_data[f] is None or form_data[f] is '':
                 del form_data[f]
         metadata = APTReconstructionMetadata(**form_data)
+
+        # Add path to tip image
+        if tip_image is not None:
+            metadata['tip_image'] = tip_image
 
         # Make the directory and save the metadata
         path = cls._make_path(dataset_name, sample_name, recon_name)

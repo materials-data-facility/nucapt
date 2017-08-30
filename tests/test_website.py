@@ -215,6 +215,7 @@ class TestWebsite(unittest.TestCase):
         self.assertTrue(os.path.isfile(recon.get_rrng_file()))
         self.assertTrue(os.path.isfile(os.path.join(recon.path, 'tip_image.jpg')))
         self.assertNotIn('shank_angle', recon.load_metadata().metadata.keys())
+        self.assertEquals(recon.load_metadata()['tip_image'], 'tip_image.jpg')
 
         for d in manager._recon_data_dirs:
             self.assertTrue(os.path.isdir(os.path.join(recon.path, d)))

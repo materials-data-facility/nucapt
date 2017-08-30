@@ -30,7 +30,6 @@
             <h3>Metadata</h3>
 
             {% for item in recon_metadata['metadata'] %}
-
                 <p><label>{{ item['key'] | safe }}</label>: {{ item['value'] | safe }}</p>
             {% endfor %}
         {% endif %}
@@ -42,7 +41,6 @@
     <p><strong>POS File</strong> {{ pos_path }}</p>
     <p><strong>RRNG File</strong> {{ rrng_path }}</p>
 
-    <h2>Actions</h2>
 
 </div>
 </body>

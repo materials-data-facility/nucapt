@@ -23,6 +23,9 @@ class MetadataHolder:
     def __getitem__(self, item):
         return self.metadata[item]
 
+    def __setitem__(self, key, value):
+        self.metadata[key] = value
+
     def _get_schema_path(self):
         """Get path to schemas
         

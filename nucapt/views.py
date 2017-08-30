@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 from nucapt import app
 from nucapt.exceptions import DatasetParseException
 from nucapt.forms import DatasetForm, APTSampleForm, APTCollectionMethodForm, APTSampleDescriptionForm, \
-    AddAPTReconstructionForm
+    AddAPTReconstructionForm, APTReconstructionForm
 from nucapt.manager import APTDataDirectory, APTSampleDirectory, APTReconstruction
 import nucapt.manager as manager
 
@@ -248,12 +248,18 @@ def create_reconstruction(dataset_name, sample_name):
             if not rrng_file.filename.lower().endswith('.rrng'):
                 errors.append('RRNG File must have extension ".rrng"')
 
+            # Find if there is a tip image
+            tip_image_path = None
+            if 'tip_image' in request.files:
+                tip_image = request.files['tip_image']
+                tip_image_path = 'tip_image.%s' % (tip_image.filename.split(".")[-1])
+
             # If errors, raise
             if len(errors) > 0:
                 raise DatasetParseException(errors)
 
             # check the metadata
-            recon_name = APTReconstruction.create_reconstruction(form, dataset_name, sample_name)
+            recon_name = APTReconstruction.create_reconstruction(form, dataset_name, sample_name, tip_image_path)
         except DatasetParseException as err:
             return render_template('reconstruction_create.html', form=form, dataset_name=dataset_name,
                                    sample_name=sample_name, errors=errors + err.errors)

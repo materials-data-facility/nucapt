@@ -26,3 +26,28 @@
 {{ render_field(form.sample_description) }}
 {{ render_keyvalue_field(form.metadata, "description_metadata") }}
 {%- endmacro %}
+
+{% macro recon_form(form) -%}
+<h2>General Metadata</h2>
+
+    <p>Simple description of this reconstruction.</p>
+
+    {{ render_field(form.title) }}
+
+    {{ render_field(form.description) }}
+
+    {{ render_keyvalue_field(form.metadata, 'metadata-table') }}
+
+    <h2>Reconstruction Settings</h2>
+
+    <p>Metadata about how this reconstruction was performed. Fill out as many are applicable.</p>
+
+    {{ render_field(form.reconstruction_method, class="") }}
+
+    {{ render_field(form.tip_radius) }}
+
+    {{ render_field(form.shank_angle) }}
+
+    {{ render_field(form.tip_image) }}
+
+{%- endmacro %}
