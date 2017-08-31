@@ -17,7 +17,7 @@
 <div class="container" enctype="multipart/form-data">
     {% from "_utils.html" import make_header, render_errors %}
     {{ make_header([(dataset_name,'/dataset/' + dataset_name),
-        (sample_name, '/dataset/%s/sample/'%sample_name),
+        (sample_name, '/dataset/%s/sample/%s'%(dataset_name, sample_name)),
         ('Add Reconstruction', 'create')
         ]) }}
     <h1>Add Reconstruction to {{ sample_name }}</h1>
