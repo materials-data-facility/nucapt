@@ -29,12 +29,12 @@
     },
     "tip_radius": {
       "type": "number",
-      "description": "Initial tip radius (units)",
+      "description": "Initial tip radius (nm)",
       "minimum": 0
     },
     "shank_angle": {
       "type": "number",
-      "description": "Shank angle (units)",
+      "description": "Shank angle (degree)",
       "minimum": 0
     },
     "tip_image": {

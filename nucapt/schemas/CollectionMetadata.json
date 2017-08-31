@@ -19,22 +19,22 @@
     },
     "voltage_ratio": {
       "type": "number",
-      "description": "Voltage ratio used in evaporation (units)",
+      "description": "Voltage ratio used in evaporation",
       "minimum": 0
     },
     "laser_pulse_energy": {
       "type": "number",
-      "description": "Laser pulse energy used in evaporation (units)",
+      "description": "Laser pulse energy used in evaporation (pJ)",
       "minimum": 0
     },
     "laser_frequency": {
       "type": "number",
-      "description": "Laser frequency (units)",
+      "description": "Laser frequency (kHz)",
       "minimum": 0
     },
     "temperature": {
       "type": "number",
-      "description": "Temperature (units)"
+      "description": "Temperature (K)"
     },
     "detection_rate": {
       "type": "number",
@@ -43,7 +43,7 @@
     },
     "starting_voltage": {
       "type": "number",
-      "description": "Starting voltage (units)"
+      "description": "Starting voltage (kV)"
     },
     "chamber_pressure": {
       "type": "number",

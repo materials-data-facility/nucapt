@@ -30,22 +30,22 @@ class APTCollectionMethodForm(Form):
     LW 13Jul17: We should select real default values to these"""
 
     leap_model = StringField('LEAP Model', description="Model of LEAP used to collect data",
-                             default='A nice one')
+                             default='4000 Si X')
     evaporation_mode = RadioField('Evaporation Mode', choices=[('voltage', 'Voltage'), ('laser', 'Laser')],
                                   description='Method used to evaporate sample',
                                   default='voltage')
-    voltage_ratio = FloatField('Voltage Ratio', description='Voltage ratio used in evaporation (units)',
+    voltage_ratio = FloatField('Voltage Ratio', description='Voltage ratio used in evaporation)',
                                validators=[NumberRange(min=0, message='Voltage ratio must be positive')],
                                default=1)
-    laser_pulse_energy = FloatField('Laser Pulse Energy', description='Laser pulse energy used in evaporation (units)',
+    laser_pulse_energy = FloatField('Laser Pulse Energy', description='Laser pulse energy used in evaporation (pJ)',
                                     validators=[NumberRange(min=0, message='Energy must be positive')],
                                     default=1)
-    laser_frequency = FloatField('Laser Frequency', description='Laser frequency (units)',
+    laser_frequency = FloatField('Laser Frequency', description='Laser frequency (kHz)',
                                  validators=[NumberRange(min=0, message='Frequency must be positive')],
                                  default=1)
-    temperature = FloatField('Temperature', description='Temperature (units)', default=1)
+    temperature = FloatField('Temperature', description='Temperature (K)', default=1)
     detection_rate = FloatField('Detection Rate', description='Detection rate (ions/pulse)', default=1)
-    starting_voltage = FloatField('Starting Voltage', description='Starting voltage (units)', default=1)
+    starting_voltage = FloatField('Starting Voltage', description='Starting voltage (kV)', default=1)
     chamber_pressure = FloatField('Chamber Vacuum Pressure', description='Chamber pressure (torr)', default=1)
     misc = FieldList(FormField(KeyValueForm), 'Other Metadata', description='Anything else that is pertinent')
 
@@ -63,8 +63,8 @@ class APTFIBLiftoutStepForm(Form):
     """Form for liftout_step"""
 
     capping_material = StringField('Capping Material', description='Capping material', validators=[Optional()])
-    wedge_dimension = FloatField('Wedge Dimension', description='Wedge dimension (&mu;m)', validators=[Optional()])
-    ion_voltage = FloatField('Ion Voltage', description='Ion voltage (V)', validators=[Optional()])
+    wedge_dimension = FloatField('Wedge Dimension', description='Wedge dimension (m)', validators=[Optional()])
+    ion_voltage = FloatField('Ion Voltage', description='Ion voltage (kV)', validators=[Optional()])
     ion_current = FloatField('Ion Current', description='Ion current (nA)', validators=[Optional()])
     sample_orientation = StringField('Sample Orientation', description='Sample orientation', validators=[Optional()])
 
@@ -72,8 +72,8 @@ class APTFIBLiftoutStepForm(Form):
 class APTSharpeningStepForm(Form):
     """For for the sharpening step"""
 
-    final_ion_voltage = FloatField('Final Ion Voltage', description='Final ion voltage (V)', validators=[Optional()])
-    final_ion_current = FloatField('Final Ion Current', description='Final ion current (nA)', validators=[Optional()])
+    final_ion_voltage = FloatField('Final Ion Voltage', description='Final ion voltage (kV)', validators=[Optional()])
+    final_ion_current = FloatField('Final Ion Current', description='Final ion current (pA)', validators=[Optional()])
 
 
 class APTFIBPreparationForm(Form):
@@ -125,9 +125,9 @@ class APTReconstructionForm(Form):
     reconstruction_method = RadioField('Reconstruction Method', description='Method used to reconstruct APT data',
                                        choices=[('shank_angle', 'Shank Angle'), ('voltage_profile', 'Voltage Profile'),
                                                 ('tip_image', 'Tip Image')], default='shank_angle')
-    tip_radius = FloatField('Initial Tip Radius', description='Initial tip radius (units)', render_kw={'min': 0},
+    tip_radius = FloatField('Initial Tip Radius', description='Initial tip radius (nm)', render_kw={'min': 0},
                               validators=[Optional()])
-    shank_angle = FloatField('Shank Angle', description='Shank angle (units)', render_kw={'min': 0},
+    shank_angle = FloatField('Shank Angle', description='Shank angle (degrees)', render_kw={'min': 0},
                                validators=[Optional()])
     tip_image = FileField('Tip Image', description='SEM image of tip')
     metadata = FieldList(FormField(KeyValueForm), 'Reconstruction Metadata',
