@@ -9,41 +9,24 @@
 </head>
 <body>
     <div class="container">
-        {% from "_utils.html" import make_header %}
+        {% from "_utils.html" import make_header, render_errors %}
         {{ make_header([(name,'/dataset/' + name )]) }}
-        <h1>Dataset {{ name }}</h1>
+        <h1>Dataset <code>{{ name }}</code></h1>
 
-        {% if errors | length > 0 %}
-        <h2>Dataset Parsing Errors</h2>
-
-        <ul>
-            {% for error in errors %}
-            <li>{{ error | safe }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
+        {{ render_errors(errors) }}
 
         {% if dataset is not none %}
-        <h2>Dataset Information</h2>
-        <p>Location: {{ dataset.path }}</p>
-
-        <h3>Title</h3>
-        <p>{{ metadata['title'] | safe }}</p>
-
-        <h3>Authors</h3>
-        {% for author in metadata['authors'] %}
-        <p>{{ author['first_name'] | safe }} {{ author['last_name'] | safe }} ({{ author['affiliation'] | safe }})</p>
-        {% endfor %}
-
-        <h3>Abstract</h3>
-
-        <p>{{ dataset.abstract | safe }}</p>
-
-        <h3>Dates</h3>
-
-        {% for name,date in metadata['dates'].items() %}
-        <p><label>{{name | safe}}</label>: {{ date | safe }}</p>
-        {% endfor %}
+        <table class="table">
+        <tr><th>Location</th><td>{{ dataset.path }}</td></tr>
+        <tr><th>Title</th><td>{{ metadata['title'] }}</td></tr>
+        <tr><th>Authors</th><td>
+            {% for author in metadata['authors'] %}
+                {{ author['first_name'] | safe }} {{ author['last_name'] | safe }} ({{ author['affiliation'] | safe }})</br>
+            {% endfor %}
+        </td></tr>
+        <tr><th>Abstract</th><td>{{ metadata['abstract'] | safe }}</td></tr>
+        <tr><th>Creation Date</th><td>{{ metadata['dates']['creation_date'] }}</td></tr>
+        </table>
         {% endif %}
 
         <h2>Samples</h2>

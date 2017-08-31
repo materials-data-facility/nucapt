@@ -138,6 +138,8 @@ def view_sample(dataset_name, sample_name):
         errors.extend(recon_errors)
     except DatasetParseException as err:
         errors.extend(err.errors)
+        recon_data = []
+        recon_metadata = []
     return render_template('sample.html', dataset_name=dataset_name, sample=sample,
                            sample_name=sample_name, sample_metadata=sample_metadata,
                            collection_metadata=collection_metadata, errors=errors,

@@ -14,27 +14,22 @@
             (sample_name, '/dataset/%s/sample/%s'%(dataset_name,sample_name)),
             (recon_name, '#')
         ]) }}
-    <h1>Reconstruction {{ recon_name }}</h1>
+    <h1>Reconstruction <code>{{ recon_name }}</code></h1>
 
     {{ render_errors(errors) }}
 
     {% if recon is not none %}
+    <table class="table">
+        <tr><th>Path</th><td>{{ recon.path }}</td></tr>
+        <tr><th>Title</th><td>{{ recon_metadata['title'] | safe }}</td></tr>
+        <tr><th>Description</th><td>{{ recon_metadata['description'] | safe }}</td></tr>
+        <tr><th>Creation Date</th><td>{{ recon_metadata['creation_date'] }}</td></tr>
 
-        <p><strong>Path</strong> {{ recon.path }}</p>
-
-        <p><strong>Title</strong> {{ recon_metadata['title'] | safe }}</p>
-
-        <p>{{ recon_metadata['description'] | safe }}</p>
-
-        {% if recon_metadata['metadata'] | length > 0 %}
-            <h3>Metadata</h3>
-
-            {% for item in recon_metadata['metadata'] %}
-                <p><label>{{ item['key'] | safe }}</label>: {{ item['value'] | safe }}</p>
-            {% endfor %}
-        {% endif %}
+        {% for item in recon_metadata['metadata'] %}
+            <tr><th>{{ item['key'] | safe }}</th><td>{{ item['value'] | safe }}</td></tr>
+        {% endfor %}
     {% endif %}
-
+    </table>
 
     <h2>Files</h2>
 
