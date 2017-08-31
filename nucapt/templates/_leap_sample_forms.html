@@ -1,6 +1,31 @@
 {% from "_form_utils.html" import render_field, render_keyvalue_field %}
 
-{% macro leap_metadata_form(form, table_name="other-table") -%}
+{% macro leap_metadata_form(form, form_prefix, table_name="other-table") -%}
+
+    <script>
+        $(document).ready(function () {
+            // Script for selectively showing only part of the form
+            var volt_ratio= $('#{{ form_prefix }}voltage_ratio').parent();
+            var laser_eng = $('#{{ form_prefix }}laser_pulse_energy').parent();
+            var pickSubForm = function () {
+                var method = $("input[name='{{ form_prefix }}evaporation_mode']:checked").val();
+                volt_ratio.hide();
+                laser_eng.hide();
+                if (method === "voltage") {
+                    volt_ratio.show();
+                    volt_ratio.find('input').attr('required', '');
+                    laser_eng.find('input').removeAttr('required');
+                } else {
+                    laser_eng.show();
+                    laser_eng.find('input').removeAttr('required');
+                    volt_ratio.find('input').attr('required', '');
+                }
+            };
+            pickSubForm();
+
+            $("input[name='{{ form_prefix }}evaporation_mode']").click(pickSubForm);
+        });
+    </script>
 
     {{ render_field(form.leap_model) }}
 
@@ -28,6 +53,34 @@
 {%- endmacro %}
 
 {% macro recon_form(form) -%}
+
+    <script>
+        $(document).ready(function () {
+            // Script for selectively showing only part of the form
+            var tip_radius= $('#tip_radius').parent();
+            var shank_angle = $('#shank_angle').parent();
+            var tip_image = $('#tip_image').parent();
+            var pickSubForm = function () {
+                var method = $("input[name='reconstruction_method']:checked").val();
+                [tip_radius, shank_angle, tip_image].forEach(function(x) {
+                    x.hide();
+                    x.find('input').removeAttr('required');
+                });
+                if (method === "shank_angle") {
+                    tip_radius.show(); tip_radius.find('input').attr('required');
+                    shank_angle.show(); shank_angle.find('input').attr('required');
+                } else if (method === "voltage_profile") {
+                    tip_radius.show(); tip_radius.find('input').attr('required');
+                } else {
+                    tip_image.show(); tip_image.find('input').attr('required');
+                }
+            };
+            pickSubForm();
+
+            $("input[name='{{ form_prefix }}reconstruction_method']").click(pickSubForm);
+        });
+    </script>
+
     <h2>General Metadata</h2>
 
     <p>Simple description of this reconstruction.</p>
