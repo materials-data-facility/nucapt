@@ -13,6 +13,11 @@
       "type": "string",
       "description": "Short description of the sample"
     },
+    "creation_date": {
+      "type": "string",
+      "description": "Date reconstruction was added to publication service",
+      "format": "date-time"
+    },
     "reconstruction_method": {
       "type": "string",
       "description": "Reconstruction method",

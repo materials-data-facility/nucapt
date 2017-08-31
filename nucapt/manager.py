@@ -112,7 +112,7 @@ class APTDataDirectory(DataDirectory):
         dataset = cls(my_name, my_path)
 
         # Add start date
-        metadata.metadata['dates'] = {'creation_date': date.today().strftime("%d%b%y")}
+        metadata['dates'] = {'creation_date': date.today().strftime("%d%b%y")}
 
         # Write to disk
         metadata_path = dataset._get_metadata_path()
@@ -232,6 +232,9 @@ class APTSampleDirectory(DataDirectory):
         # Create a directory and save metadata in it
         sample_name = form.sample_name.data
         path = os.path.join(data_path, dataset_name, sample_name)
+
+        # Add the creation date
+        general['creation_date'] = date.today().strftime("%d%b%y")
 
         #   Check if that path exists
         if os.path.isdir(path):
@@ -419,6 +422,7 @@ class APTReconstruction(DataDirectory):
             if form_data[f] is None or form_data[f] is '':
                 del form_data[f]
         metadata = APTReconstructionMetadata(**form_data)
+        metadata['creation_date'] = date.today().strftime("%d%b%y")
 
         # Add path to tip image
         if tip_image is not None:
