@@ -1,7 +1,7 @@
 {% macro render_field(field, class="form-control") -%}
 <div class="form-group {% if field.errors %}has-error{% endif %}">
     {{ field.label }}
-    {{ field(class=class) | safe }}
+    {{ field(class=class, required="") | safe }}
     <span class="help-block">{{ field.description }}</span>
     {% if field.errors %}
     {% for error in field.errors %}
@@ -17,8 +17,8 @@
     <tr><th>Key</th><th>Value</th><th></th></tr>
     {% for m in field %}
     <tr>
-        <td>{{m.key() | safe}}</td>
-        <td>{{m.value() | safe}}</td>
+        <td>{{m.key(required="") | safe}}</td>
+        <td>{{m.value(required="") | safe}}</td>
         <td>
             <button type="button" class="btn-sm btn-danger" onclick="this.parentNode.parentNode.remove()">Delete</button>
         </td>

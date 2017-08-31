@@ -31,6 +31,8 @@
         {% from "_leap_sample_forms.html" import recon_form %}
         {{ render_field(form.name) }}
 
+        {{ mf.recon_form(form) }}
+
         <h2>Data Files</h2>
 
         <p>Data files holding the reconstruction data</p>
