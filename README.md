@@ -1,14 +1,14 @@
 # NUCAPT Publication Manager
 [![Build Status](https://travis-ci.org/materials-data-facility/nucapt.svg?branch=master)](https://travis-ci.org/materials-data-facility/nucapt)[![Coverage Status](https://coveralls.io/repos/github/materials-data-facility/nucapt/badge.svg?branch=master)](https://coveralls.io/github/materials-data-facility/nucapt?branch=master)
 
-The NUCAPT publication manager is designed to organize data produced by the Northwestern Univeristy Atom Probe
-Tomography facilty. The primary functions of this service is to create an maintain an organized filesystem, and
-to gather metadata about each APT sample in a consistent format. Both of these functions will serve to make this data
-more resuable and to simplify publication to the [Materials Data Facility](http://materialsdatafacility.org).
+The NUCAPT publication manager is designed to organize data produced by the Northwestern University Atom Probe
+Tomography (NUCAPT) facility. The primary functions of this service are to create and maintain an organized filesystem,
+and assist gathering metadata about each APT sample. Both of these functions will serve to make this data more
+resuable and to simplify publication to the [Materials Data Facility](http://materialsdatafacility.org).
 
 ## Installation
 
-To install and start this service, first install the python package by calling:
+First install the python package by calling:
 
 ```pip install -e .```
 
