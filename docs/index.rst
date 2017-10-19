@@ -12,7 +12,7 @@ Welcome to NUCAPT-Publisher's documentation!
 
 NUCAPT-Publisher is a tool designed to faciliate organizing and publishing Atom Probe Tomography (APT) datasets. 
 This software creates a website that collects metadata about an APT sample, and organizes the data and metadata on a filesystem.
-Once a dataset is complete, NUCAPT-Publisher will automate publishing the data to the `Materials Data Facility <http://materialsdatafacility.org>`_.
+For completed datasets, NUCAPT-Publisher simplifies publishing the data to the `Materials Data Facility <http://materialsdatafacility.org>`_.
 
 
 
