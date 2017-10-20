@@ -9,6 +9,8 @@ Welcome to NUCAPT-Publisher's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+   
+   userguide
 
 NUCAPT-Publisher is a tool designed to faciliate organizing and publishing Atom Probe Tomography (APT) datasets. 
 This software creates a website that collects metadata about an APT sample, and organizes the data and metadata on a filesystem.
@@ -19,13 +21,13 @@ For completed datasets, NUCAPT-Publisher simplifies publishing the data to the `
 Using NUCAPT-Pub
 ----------------
 
-TBD
+Please a simple tutorial for NUCAPT users `here <userguide.html>`_.
 
 
 Installation
 ------------
 
-Install NUCAPT-Publisher by running:
+Install NUCAPT-Publisher by running::
 
     pip install -e .
 	
@@ -36,7 +38,7 @@ Once installation is complete, you should configure the paths to where your data
 After you have configured the tool, launch it by calling:
 
 |	``start_flask`` if on Windows
-|	``./start_flask.bs`` if on Linux (TBD, actualy)
+|	``./start_flask.bs`` if on Linux (TBD, actually)
 
 
 Contribute
