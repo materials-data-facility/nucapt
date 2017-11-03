@@ -22,7 +22,7 @@ Once the environment variable is set, run Flask by calling: `flask run`
 
 ## Using NUCAPT Publication Manager
 
-Documentation TBD
+Documentation is available on [nucapt.readthedocs.io](http://nucapt.readthedocs.io/en/latest/)
 
 ## Support
 This work was performed under financial assistance award 70NANB14H012 from U.S. Department of Commerce,
