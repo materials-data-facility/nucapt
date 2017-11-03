@@ -130,13 +130,12 @@ class APTDataDirectory(DataDirectory):
             value: `APTDataDirectory` if metadata file is valid, `DatasetParseException` otherwise"""
 
         output = dict()
-        for sub_path in os.listdir(path):
-            if not os.path.isdir(os.path.join(path, sub_path)):
-                continue
+        for sub_path in glob(os.path.join(path, "*", "GeneralMetadata.yaml")):
+            sub_path = os.path.dirname(sub_path)
 
             # Get "name" of directory
             try:
-                output[sub_path] = cls.load_dataset_by_path(os.path.join(path, sub_path))
+                output[sub_path] = cls.load_dataset_by_path(sub_path)
             except DatasetParseException as err:
                 output[sub_path] = err
             except:

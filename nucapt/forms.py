@@ -34,7 +34,7 @@ class APTCollectionMethodForm(Form):
     evaporation_mode = RadioField('Evaporation Mode', choices=[('voltage', 'Voltage'), ('laser', 'Laser')],
                                   description='Method used to evaporate sample',
                                   default='voltage')
-    voltage_ratio = FloatField('Voltage Ratio', description='Voltage ratio used in evaporation)',
+    voltage_ratio = FloatField('Voltage Ratio', description='Voltage ratio used in evaporation',
                                validators=[NumberRange(min=0, message='Voltage ratio must be positive')],
                                default=1)
     laser_pulse_energy = FloatField('Laser Pulse Energy', description='Laser pulse energy used in evaporation (pJ)',

@@ -93,6 +93,11 @@ class TestWebsite(unittest.TestCase):
         rv = self.app.get('/dataset/bogus/edit')
         self.assertEquals(302, rv.status_code)
 
+        # Add a empty directory to the working directory, make sure dataset listing doesn't fail
+        os.mkdir(os.path.join(manager.data_path, 'empty_dir'))
+        rv = self.app.get('/datasets')
+        self.assertEquals(200, rv.status_code)
+
     def test_sample_method(self):
 
         # Make an initial dataset
