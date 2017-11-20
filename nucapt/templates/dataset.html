@@ -1,54 +1,42 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>NUCAPT: Dataset {{ name }}</title>
-    {% include '_includes.html' %}
-    <script type = 'text/javascript' language="javascript">
-    </script>
-</head>
-<body>
-    <div class="container">
-        {% from "_utils.html" import make_header, render_errors %}
-        {{ make_header([(name,'/dataset/' + name )]) }}
-        <h1>Dataset <code>{{ name }}</code></h1>
+{% extends "base.html" %}
+{% block title %}{{ name }}{% endblock %}
+{% block body %}
+    {% from "_utils.html" import render_errors %}
+    <h1>Dataset <code>{{ name }}</code></h1>
 
-        {{ render_errors(errors) }}
+    {{ render_errors(errors) }}
 
-        {% if dataset is not none %}
-        <table class="table">
-        <tr><th>Location</th><td>{{ dataset.path }}</td></tr>
-        <tr><th>Title</th><td>{{ metadata['title'] }}</td></tr>
-        <tr><th>Authors</th><td>
-            {% for author in metadata['authors'] %}
-                {{ author['first_name'] | safe }} {{ author['last_name'] | safe }} ({{ author['affiliation'] | safe }})</br>
-            {% endfor %}
-        </td></tr>
-        <tr><th>Abstract</th><td>{{ metadata['abstract'] | safe }}</td></tr>
-        <tr><th>Creation Date</th><td>{{ metadata['dates']['creation_date'] }}</td></tr>
-        </table>
-        {% endif %}
+    {% if dataset is not none %}
+    <table class="table">
+    <tr><th>Location</th><td>{{ dataset.path }}</td></tr>
+    <tr><th>Title</th><td>{{ metadata['title'] }}</td></tr>
+    <tr><th>Authors</th><td>
+        {% for author in metadata['authors'] %}
+            {{ author['first_name'] | safe }} {{ author['last_name'] | safe }} ({{ author['affiliation'] | safe }})</br>
+        {% endfor %}
+    </td></tr>
+    <tr><th>Abstract</th><td>{{ metadata['abstract'] | safe }}</td></tr>
+    <tr><th>Creation Date</th><td>{{ metadata['dates']['creation_date'] }}</td></tr>
+    </table>
+    {% endif %}
 
-        <h2>Samples</h2>
+    <h2>Samples</h2>
 
-        <p>A listing the samples currently associated with this dataset</p>
+    <p>A listing the samples currently associated with this dataset</p>
 
-        <table class="table">
-            <tr><th>Sample</th><th>Title</th><th>Actions</th></tr>
-            {% for sample in samples %}
-            <tr>
-                <td>{{ sample['sample_name'] | safe }}</td>
-                <td>{{ sample.load_sample_information()['sample_title'] | safe }}</td>
-                <td><a href="{{ name }}/sample/{{ sample['sample_name'] }}">View</a></td>
-            </tr>
-            {% endfor %}
-        </table>
+    <table class="table">
+        <tr><th>Sample</th><th>Title</th><th>Actions</th></tr>
+        {% for sample in samples %}
+        <tr>
+            <td>{{ sample['sample_name'] | safe }}</td>
+            <td>{{ sample.load_sample_information()['sample_title'] | safe }}</td>
+            <td><a href="{{ name }}/sample/{{ sample['sample_name'] }}">View</a></td>
+        </tr>
+        {% endfor %}
+    </table>
 
-        <h2>Actions</h2>
+    <h2>Actions</h2>
 
-        <h3><a href="/dataset/{{name}}/sample/create">Add Sample</a></h3>
-        <h3><a href="/dataset/{{name}}/edit">Edit Metadata</a></h3>
-
-    </div>
-</body>
-</html>
+    <h3><a href="/dataset/{{name}}/sample/create">Add Sample</a></h3>
+    <h3><a href="/dataset/{{name}}/edit">Edit Metadata</a></h3>
+{% endblock %}

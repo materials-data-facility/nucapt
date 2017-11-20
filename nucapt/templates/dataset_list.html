@@ -1,45 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>NUCAPT: Dataset List</title>
-    {% include '_includes.html' %}
-    <script type = 'text/javascript' language="javascript">
-    </script>
-</head>
-<body>
-    <div class="container">
-        {% from "_utils.html" import make_header %}
-        {{ make_header([('List Datasets','/datasets')]) }}
-        <h1>All Current Datasets</h1>
+{% extends "base.html" %}
+{% block title %}Dataset List{% endblock %}
+{% block body %}
+<h1>All Current Datasets</h1>
 
-        <p>This page lists all datasets currently stored using the NUCAPT data publication service</p>
+<p>This page lists all datasets currently stored using the NUCAPT data publication service</p>
 
-        <table class="table">
-            <tr>
-                <th>Dataset Name</th>
-                <th>Dataset Title</th>
-                <th>Creation Date</th>
-                <th>Actions</th>
-            </tr>
-            {% for dir,info in dir_info.items() %}
-            {% if dir_valid[dir] %}
-            <tr>
-                {% set metadata = info.get_metadata() %}
-                <td>{{ info.name }}</td>
-                <td>{{ metadata['title'] }}</td>
-                <td>{{ metadata['dates']['creation_date']}}</td>
-                <td>
-                    <a href="/dataset/{{ info.name }}">View</a>
-                    <a href="#">Publish</a>
-                </td>
-            </tr>
-            {% else %}
-            {% endif %}
-            {% endfor %}
-        </table>
-
-
-    </div>
-</body>
-</html>
+<table class="table">
+    <tr>
+        <th>Dataset Name</th>
+        <th>Dataset Title</th>
+        <th>Creation Date</th>
+        <th>Actions</th>
+    </tr>
+    {% for dir,info in dir_info.items() %}
+    {% if dir_valid[dir] %}
+    <tr>
+        {% set metadata = info.get_metadata() %}
+        <td>{{ info.name }}</td>
+        <td>{{ metadata['title'] }}</td>
+        <td>{{ metadata['dates']['creation_date']}}</td>
+        <td>
+            <a href="/dataset/{{ info.name }}">View</a>
+            <a href="#">Publish</a>
+        </td>
+    </tr>
+    {% else %}
+    {% endif %}
+    {% endfor %}
+</table>
+{% endblock %}

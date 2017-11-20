@@ -28,19 +28,21 @@ def create():
     if request.method == 'POST' and form.validate():
         dataset = APTDataDirectory.initialize_dataset(form)
         return redirect('/dataset/%s'%dataset.name)
-    return render_template('dataset_create.html', title=title, description=description, form=form)
+    return render_template('dataset_create.html', title=title, description=description, form=form,
+                           navbar=[('Create Dataset', '#')])
 
 
 @app.route("/dataset/<name>/edit", methods=['GET', 'POST'])
 def edit_dataset(name):
-    """Edit dataset metdata"""
+    """Edit dataset metadata"""
 
     title = 'Edit Dataset'
     description = 'Edit the general metadata of a dataset'
+    navbar = [(name, '/dataset/%s'%name), ('Edit', '#')]
 
     try:
         dataset = APTDataDirectory.load_dataset_by_name(name)
-    except:
+    except (FileNotFoundError, ValueError, AttributeError, DatasetParseException):
         return redirect("/dataset/" + name)
 
     if request.method == 'POST':
@@ -49,10 +51,10 @@ def edit_dataset(name):
             dataset.update_metadata(form)
             return redirect('/dataset/' + name)
         else:
-            return render_template('dataset_create.html', title=title, description=description, form=form)
+            return render_template('dataset_create.html', title=title, description=description, form=form, navbar=navbar)
     else:
         form = DatasetForm(**dataset.get_metadata().metadata)
-        return render_template('dataset_create.html', title=title, description=description, form=form)
+        return render_template('dataset_create.html', title=title, description=description, form=form, navbar=navbar)
 
 
 @app.route("/dataset/<name>")
@@ -64,10 +66,12 @@ def display_dataset(name):
     except DatasetParseException as exc:
         dataset = None
         errors = exc.errors
+        return render_template('dataset.html', name=name, dataset=dataset, errors=errors, navbar=[(name, '/dataset/%s' % name)])
     samples, sample_errors = dataset.list_samples()
     errors.extend(sample_errors)
     metadata = dataset.get_metadata()
-    return render_template('dataset.html', name=name, dataset=dataset, samples=samples, errors=errors, metadata=metadata)
+    return render_template('dataset.html', name=name, dataset=dataset, samples=samples, errors=errors,
+                           metadata=metadata, navbar=[(name, '/dataset/%s'%name)])
 
 
 @app.route("/datasets")
@@ -76,12 +80,15 @@ def list_datasets():
 
     dir_info = APTDataDirectory.get_all_datasets(manager.data_path)
     dir_valid = dict([(dir, isinstance(info,APTDataDirectory)) for dir,info in dir_info.items()])
-    return render_template("dataset_list.html", dir_info=dir_info, dir_valid=dir_valid)
+    return render_template("dataset_list.html", dir_info=dir_info, dir_valid=dir_valid,
+                           navbar=[('List Datasets', '#')])
 
 
 @app.route("/dataset/<name>/sample/create", methods=['GET', 'POST'])
 def create_sample(name):
     """Create a new sample for a dataset"""
+
+    navbar = [(name, 'dataset/%s'%name), ('Create Sample', '#')]
 
     # Load in the dataset
     try:
@@ -99,7 +106,7 @@ def create_sample(name):
         try:
             sample_name = APTSampleDirectory.create_sample(name, form)
         except DatasetParseException as err:
-            return render_template('sample_create.html', form=form, name=name, errors=err.errors)
+            return render_template('sample_create.html', form=form, name=name, errors=err.errors, navbar=navbar)
 
         # If valid, upload the data
         sample = APTSampleDirectory.load_dataset_by_name(name, sample_name)
@@ -109,23 +116,26 @@ def create_sample(name):
         else:
             # Clear the old sample
             shutil.rmtree(sample.path)
-            return render_template('sample_create.html', form=form, name=name, errors=['File must have extension RHIT'])
+            return render_template('sample_create.html', form=form, name=name, errors=['File must have extension RHIT'],
+                                   navbar=navbar)
 
         return redirect("/dataset/%s/sample/%s"%(name, sample_name))
 
     # If GET request, make a new sample name
-    return render_template('sample_create.html', form=form, name=name)
+    return render_template('sample_create.html', form=form, name=name, navbar=navbar)
 
 
 @app.route("/dataset/<dataset_name>/sample/<sample_name>")
 def view_sample(dataset_name, sample_name):
     """View metadata about sample"""
 
+    navbar = [(dataset_name, '/dataset/%s'%dataset_name), (sample_name, '#')]
+
     # Load in the sample by name
     try:
         sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
     except DatasetParseException as exc:
-        return render_template('sample.html', dataset_name=dataset_name, sample=sample, errors=exc.errors)
+        return render_template('sample.html', dataset_name=dataset_name, sample=sample, errors=exc.errors, navbar=navbar)
 
     # Load in the sample information
     sample_metadata = None
@@ -143,7 +153,8 @@ def view_sample(dataset_name, sample_name):
     return render_template('sample.html', dataset_name=dataset_name, sample=sample,
                            sample_name=sample_name, sample_metadata=sample_metadata,
                            collection_metadata=collection_metadata, errors=errors,
-                           recon_data=list(zip(recon_data, recon_metadata)))
+                           recon_data=list(zip(recon_data, recon_metadata)),
+                           navbar=navbar)
 
 
 @app.route("/dataset/<dataset_name>/sample/<sample_name>/edit_info", methods=['GET', 'POST'])
@@ -219,6 +230,11 @@ def edit_sample_metadata(dataset_name, edit_page, my_form, sample, sample_metada
     :param update_func: function pointer, function to call with updated metadata
     :return:
     """
+
+    navbar = [(dataset_name, '/dataset/%s' % dataset_name),
+              (sample_name, '/dataset/%s/sample/%s' % (dataset_name, sample_name)),
+              ('Edit', '#')]
+
     if request.method == 'POST':
         # Validate the form
         form = my_form(request.form)
@@ -233,7 +249,7 @@ def edit_sample_metadata(dataset_name, edit_page, my_form, sample, sample_metada
             return redirect('/dataset/%s/sample/%s' % (dataset_name, sample_name))
         else:
             return render_template(edit_page, dataset_name=dataset_name, sample=sample,
-                                   sample_name=sample_name, errors=errors, form=form)
+                                   sample_name=sample_name, errors=errors, form=form, navbar=navbar)
     else:
         # Load in the existing information
         errors = None
@@ -243,11 +259,15 @@ def edit_sample_metadata(dataset_name, edit_page, my_form, sample, sample_metada
             form = my_form()
             errors = err
         return render_template(edit_page, dataset_name=dataset_name, sample=sample,
-                               sample_name=sample_name, form=form, errors=errors)
+                               sample_name=sample_name, form=form, errors=errors, navbar=navbar)
 
 
 @app.route("/dataset/<dataset_name>/sample/<sample_name>/recon/create", methods=['GET', 'POST'])
 def create_reconstruction(dataset_name, sample_name):
+    navbar = [(dataset_name, '/dataset/%s' % dataset_name),
+              (sample_name, '/dataset/%s/sample/%s' % (dataset_name, sample_name)),
+              ('Add Reconstruction', '#')]
+
     # Make sure this sample exists
     try:
         sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
@@ -287,7 +307,7 @@ def create_reconstruction(dataset_name, sample_name):
             recon_name = APTReconstruction.create_reconstruction(form, dataset_name, sample_name, tip_image_path)
         except DatasetParseException as err:
             return render_template('reconstruction_create.html', form=form, dataset_name=dataset_name,
-                                   sample_name=sample_name, errors=errors + err.errors)
+                                   sample_name=sample_name, errors=errors + err.errors, navbar=navbar)
 
         # If valid, upload the data
         recon = APTReconstruction.load_dataset_by_name(dataset_name, sample_name, recon_name)
@@ -299,11 +319,17 @@ def create_reconstruction(dataset_name, sample_name):
 
         return redirect("/dataset/%s/sample/%s/recon/%s" % (dataset_name, sample_name, recon_name))
 
-    return render_template('reconstruction_create.html', form=form, dataset_name=dataset_name, sample_name=sample_name)
+    return render_template('reconstruction_create.html', form=form, dataset_name=dataset_name,
+                           sample_name=sample_name, navbar=navbar)
 
 
 @app.route("/dataset/<dataset_name>/sample/<sample_name>/recon/<recon_name>")
 def view_reconstruction(dataset_name, sample_name, recon_name):
+    navbar = [(dataset_name, '/dataset/%s' % dataset_name),
+              (sample_name, '/dataset/%s/sample/%s' % (dataset_name, sample_name)),
+              (recon_name, '#')]
+
+
     errors = []
     try:
         # Load in the recon
@@ -325,4 +351,4 @@ def view_reconstruction(dataset_name, sample_name, recon_name):
         raise
     return render_template('reconstruction.html', dataset_name=dataset_name, sample_name=sample_name,
                            recon_name=recon_name, recon=recon, recon_metadata=recon_metadata, errors=errors,
-                           pos_path=pos_path, rrng_path=rrng_path)
+                           pos_path=pos_path, rrng_path=rrng_path, navbar=navbar)

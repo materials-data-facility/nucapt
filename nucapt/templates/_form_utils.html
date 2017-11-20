@@ -1,31 +1,43 @@
 {% macro render_field(field, class="form-control") -%}
-<div class="form-group {% if field.errors %}has-error{% endif %}">
-    {{ field.label }}
-    {{ field(class=class, required="") | safe }}
-    <span class="help-block">{{ field.description }}</span>
-    {% if field.errors %}
-    {% for error in field.errors %}
-    <p class="bg-danger">{{ error }}</p>
-    {% endfor %}
-    {% endif %}
-</div>
+    <div class="form-group {% if field.errors %}has-error{% endif %}">
+        {{ field.label }}
+        {{ field(class=class, required="") | safe }}
+        <span class="help-block">{{ field.description }}</span>
+        {% if field.errors %}
+            {% for error in field.errors %}
+                <p class="bg-danger">{{ error }}</p>
+            {% endfor %}
+        {% endif %}
+    </div>
 {%- endmacro %}
 
 {% macro render_keyvalue_field(field, table_name) -%}
-<label>{{ field.label }}</label>
-<table class="table" id="{{ table_name }}">
-    <tr><th>Key</th><th>Value</th><th></th></tr>
-    {% for m in field %}
-    <tr>
-        <td>{{m.key(required="") | safe}}</td>
-        <td>{{m.value(required="") | safe}}</td>
-        <td>
-            <button type="button" class="btn-sm btn-danger" onclick="this.parentNode.parentNode.remove()">Delete</button>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
-<p>
-    <button type="button" class="btn-sm btn-primary" id="{{ table_name }}_btn-add-row">Add Field</button>
-</p>
+    <script src="{{ url_for('static', filename='js/util.js') }}"></script>
+    <script>
+        $(document).ready(function () {
+            keyValueTable("{{ table_name }}", "{{ field.name }}");
+        });
+    </script>
+    <label>{{ field.label }}</label>
+    <table class="table" id="{{ table_name }}">
+        <tr>
+            <th>Key</th>
+            <th>Value</th>
+            <th></th>
+        </tr>
+        {% for m in field %}
+            <tr>
+                <td>{{ m.key(required="") | safe }}</td>
+                <td>{{ m.value(required="") | safe }}</td>
+                <td>
+                    <button type="button" class="btn-sm btn-danger" onclick="this.parentNode.parentNode.remove()">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+    <p>
+        <button type="button" class="btn-sm btn-primary" id="{{ table_name }}_btn-add-row">Add Field</button>
+    </p>
 {%- endmacro %}

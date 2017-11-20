@@ -1,26 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>NUCAPT: Create Sample for {{ name }}</title>
-    {% include '_includes.html' %}
-    {% import '_leap_sample_forms.html' as mf %}
-    {% from '_form_utils.html' import render_field %}
-    {% from '_utils.html' import render_errors %}
-    <script src="{{ url_for('static', filename='js/util.js') }}"></script>
-    <script>
-        $(document).ready(function () {
-            keyValueTable("description_metadata", "metadata");
-        });
-    </script>
-</head>
-<body>
-<div class="container" enctype="multipart/form-data">
-    {% from "_utils.html" import make_header %}
-    {{ make_header([(dataset_name,'/dataset/%s'%dataset_name),
-        (sample_name, '/dataset/%s/sample/%s'%(dataset_name,sample_name)),
-        ('Edit Preparation Metadata', '/dataset/%s/sample/%s/edit_preparation'%(dataset_name,sample_name))
-    ]) }}
+{% extends "base.html" %}
+{% block title %}Edit Sample{% endblock %}
+{% import '_leap_sample_forms.html' as mf %}
+{% from '_form_utils.html' import render_field %}
+{% from '_utils.html' import render_errors %}
+{% block body %}
     <h1>Edit Sample Preparation Metadata for {{ sample_name }}</h1>
 
     <p>Edit sample processing information. Describe how you made this APT sample.</p>
@@ -32,7 +15,4 @@
 
         <p><input type="submit" class="btn-lg btn-primary" value="Update Sample"/></p>
     </form>
-
-</div>
-</body>
-</html>
+{% endblock %}

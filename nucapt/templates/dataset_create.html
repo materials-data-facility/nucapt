@@ -1,84 +1,77 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ title }}</title>
-    {% include '_includes.html' %}
-    {% from '_form_utils.html' import render_field %}
-    <script type = 'text/javascript' language="javascript">
-        $(document).ready(function() {
-            var getNumRows = function() {
-                return $("#author_table").find("tr").length - 1;
-            };
-            if (getNumRows() == 1) {
-                $("#btn-del-row").hide(); // Remove this button at first
-            }
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block body %}
+<script type='text/javascript' language="javascript">
+    $(document).ready(function () {
+        var getNumRows = function () {
+            return $("#author_table").find("tr").length - 1;
+        };
+        if (getNumRows() == 1) {
+            $("#btn-del-row").hide(); // Remove this button at first
+        }
 
-            $("#btn-add-row").click(function() {
-                var numRows = getNumRows();
+        $("#btn-add-row").click(function () {
+            var numRows = getNumRows();
 
-                // Make a new form row
-                var tr = document.createElement("tr");
-                ['first_name', 'last_name', 'affiliation'].forEach(function(e) {
-                    var td = document.createElement("td");
-                    var input = document.createElement("input");
-                    input.id = 'authors-' + numRows + "-" + e;
-                    input.name = input.id;
-                    input.type = 'text';
-                    td.appendChild(input);
-                    tr.appendChild(td)
-                });
-                $("#author_table tr:last").after(tr);
-
-                if (numRows >= 1) {
-                    $("#btn-del-row").show()
-                }
+            // Make a new form row
+            var tr = document.createElement("tr");
+            ['first_name', 'last_name', 'affiliation'].forEach(function (e) {
+                var td = document.createElement("td");
+                var input = document.createElement("input");
+                input.id = 'authors-' + numRows + "-" + e;
+                input.name = input.id;
+                input.type = 'text';
+                td.appendChild(input);
+                tr.appendChild(td)
             });
+            $("#author_table tr:last").after(tr);
 
-            $("#btn-del-row").click(function() {
-                var numRows = getNumRows();
-                if (numRows > 1) {
-                    $("#author_table tr:last").remove();
-                }
-                if (numRows == 2) {
-                    $("#btn-del-row").hide();
-                }
-            })
+            if (numRows >= 1) {
+                $("#btn-del-row").show()
+            }
         });
-    </script>
-</head>
-<body>
-    <div class="container">
-	    {% from "_utils.html" import make_header %}
-        {{ make_header([(title,'/create/')]) }}
-        <h1>{{ title | safe }}</h1>
 
-        <p>{{ description | safe }}</p>
+        $("#btn-del-row").click(function () {
+            var numRows = getNumRows();
+            if (numRows > 1) {
+                $("#author_table tr:last").remove();
+            }
+            if (numRows == 2) {
+                $("#btn-del-row").hide();
+            }
+        })
+    });
+</script>
+<h1>{{ title | safe }}</h1>
 
-        <form class='form-horizontal' method=post>
-            {{ render_field(form.title) }}
+<p>{{ description | safe }}</p>
 
-            {{ render_field(form.abstract) }}
+<form class='form-horizontal' method=post>
+    {% from '_form_utils.html' import render_field %}
+    {{ render_field(form.title) }}
 
-            <h4>Authors</h4>
-            <table class="table" id="author_table">
-                <tr><th>First Name</th><th>Last Name</th><th>Affliation</th></tr>
-                {% for author in form.authors %}
-                <tr>
-                    <td>{{author.first_name() | safe}}</td>
-                    <td>{{author.last_name() | safe}}</td>
-                    <td>{{author.affiliation() | safe}}</td>
-                </tr>
-                {% endfor %}
-            </table>
-            <p>
-                <button type="button" class="btn-sm btn-primary" id="btn-add-row">Add Author</button>
-                <button type="button" class="btn-sm btn-danger" id="btn-del-row">Remove Author</button>
-            </p>
+    {{ render_field(form.abstract) }}
 
-            <p><input type="submit" class="btn-lg btn-primary" value="Submit"/></p>
-        </form>
+    <h4>Authors</h4>
+    <table class="table" id="author_table">
+        <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Affliation</th>
+        </tr>
+        {% for author in form.authors %}
+            <tr>
+                <td>{{ author.first_name() | safe }}</td>
+                <td>{{ author.last_name() | safe }}</td>
+                <td>{{ author.affiliation() | safe }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    <p>
+        <button type="button" class="btn-sm btn-primary" id="btn-add-row">Add Author</button>
+        <button type="button" class="btn-sm btn-danger" id="btn-del-row">Remove Author</button>
+    </p>
 
-    </div>
-</body>
-</html>
+    <p><input type="submit" class="btn-lg btn-primary" value="Submit"/></p>
+</form>
+{% endblock body %}

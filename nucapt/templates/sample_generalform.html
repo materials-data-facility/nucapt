@@ -1,46 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>NUCAPT: Create Sample for {{ name }}</title>
-    {% include '_includes.html' %}
-    {% import '_leap_sample_forms.html' as mf %}
-    {% from '_form_utils.html' import render_field %}
-    <script src="{{ url_for('static', filename='js/util.js') }}"></script>
-    <script>
-        $(document).ready(function () {
-            keyValueTable("description_metadata", "metadata");
-        });
-    </script>
-</head>
-<body>
-<div class="container" enctype="multipart/form-data">
-    {% from "_utils.html" import make_header %}
-    {{ make_header([(dataset_name,'/dataset/%s'%dataset_name),
-        (sample_name, '/dataset/%s/sample/%s'%(dataset_name,sample_name)),
-        ('Edit Sample Info', '/dataset/%s/sample/%s/edit_info'%(dataset_name,sample_name))
-    ]) }}
+{% extends "base.html" %}
+{% block title %}Edit Sample{% endblock %}
+{% import '_leap_sample_forms.html' as mf %}
+{% from '_form_utils.html' import render_field %}
+{% from '_utils.html' import render_errors %}
+{% block body %}
     <h1>Edit General Sample Data for {{ sample_name }}</h1>
 
     <p>Edit data describing this sample. This information is used to help make someone unfamiliar with this experiment
-    know what this data is.</p>
+        know what this data is.</p>
 
-    {% if errors is not none %}
-    <h2>Metadata Errors</h2>
-
-    <ol>
-        {% for error in errors %}
-        <li>{{ error }}</li>
-        {% endfor %}
-    </ol>
-    {% endif %}
+    {{ render_errors(errors) }}
 
     <form class='form-horizontal' method=post>
         {{ mf.sample_form(form) }}
 
         <p><input type="submit" class="btn-lg btn-primary" value="Update Sample"/></p>
     </form>
-
-</div>
-</body>
-</html>
+{% endblock %}

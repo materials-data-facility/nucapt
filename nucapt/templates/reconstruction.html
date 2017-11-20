@@ -1,19 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>NUCAPT: Reconstruction {{ recon_name }}</title>
-    {% include '_includes.html' %}
-    <script type='text/javascript' language="javascript">
-    </script>
-</head>
-<body>
-<div class="container">
-    {% from "_utils.html" import make_header, render_errors %}
-    {{ make_header([(dataset_name,'/dataset/%s'%dataset_name),
-            (sample_name, '/dataset/%s/sample/%s'%(dataset_name,sample_name)),
-            (recon_name, '#')
-        ]) }}
+{% extends "base.html" %}
+{% block title %}{{ recon_name }}{% endblock %}
+{% block body %}
+    {% from "_utils.html" import render_errors %}
     <h1>Reconstruction <code>{{ recon_name }}</code></h1>
 
     {{ render_errors(errors) }}
@@ -35,8 +23,4 @@
 
     <p><strong>POS File</strong> {{ pos_path }}</p>
     <p><strong>RRNG File</strong> {{ rrng_path }}</p>
-
-
-</div>
-</body>
-</html>
+{% endblock %}
