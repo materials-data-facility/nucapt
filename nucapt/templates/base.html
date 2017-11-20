@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>NUCAPT - {% block title %}{% endblock %}</title>
+    {% include '_includes.html' %}
+</head>
+<body style="padding-top: 70px;">
+<nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="#">NUCAPT</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                {% if navbar == None or navbar | length == 0 %}
+                    <li class="active"><a href="/">Home</a></li>
+                {% else %}
+                    <li><a href="/">Home</a></li>
+                    {% for name,href in navbar[:-1] %}
+                    <li><a href="{{ href }}">{{ name }}</a></li>
+                    {% endfor %}
+                    <li class="active"><a href="{{ navbar[-1][1] }}">{{ navbar[-1][0] }}</a></li>
+                {% endif %}
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="/login">Log in</a></li>
+            </ul>
+        </div><!--/.nav-collapse -->
+    </div>
+</nav>
+<div class="container" enctype="multipart/form-data">
+    {% block body %}
+    {% endblock %}
+</div>
+</body>
+</html>
