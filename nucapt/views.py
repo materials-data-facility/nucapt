@@ -42,7 +42,7 @@ def edit_dataset(name):
 
     try:
         dataset = APTDataDirectory.load_dataset_by_name(name)
-    except (FileNotFoundError, ValueError, AttributeError, DatasetParseException):
+    except (ValueError, AttributeError, DatasetParseException):
         return redirect("/dataset/" + name)
 
     if request.method == 'POST':
