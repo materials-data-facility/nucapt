@@ -11,6 +11,7 @@ setup(
         'pyyaml==3.12',
         'six==1.10.0',
         'jsonschema==2.6.0',
-        'beautifulsoup4==4.6.0'
+        'beautifulsoup4==4.6.0',
+        'globus_sdk==1.2.2'
     ],
 )

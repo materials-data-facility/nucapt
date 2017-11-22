@@ -5,7 +5,7 @@
 The NUCAPT publication manager is designed to organize data produced by the Northwestern University Atom Probe
 Tomography (NUCAPT) facility. The primary functions of this service are to create and maintain an organized filesystem,
 and assist gathering metadata about each APT sample. Both of these functions will serve to make this data more
-resuable and to simplify publication to the [Materials Data Facility](http://materialsdatafacility.org).
+resuable and will simplify publication to the [Materials Data Facility](http://materialsdatafacility.org).
 
 ## Installation
 
