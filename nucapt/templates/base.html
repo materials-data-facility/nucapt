@@ -22,8 +22,14 @@
                     <li class="active"><a href="{{ navbar[-1][1] }}">{{ navbar[-1][0] }}</a></li>
                 {% endif %}
             </ul>
+
             <ul class="nav navbar-nav navbar-right">
+                {%if not session.get('is_authenticated')%}
                 <li><a href="/login">Log in</a></li>
+                {% else %}
+                <p class="navbar-text">Signed in as {{ session.get('name') }}</p>
+                <li><a href="/logout">Log Out</a></li>
+                {% endif %}
             </ul>
         </div><!--/.nav-collapse -->
     </div>

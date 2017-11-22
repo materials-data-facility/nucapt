@@ -19,6 +19,8 @@ class TestWebsite(unittest.TestCase):
         nucapt.app.testing = True
         manager.data_path = tempfile.mkdtemp()
         self.app = nucapt.app.test_client()
+        with self.app.session_transaction() as sess:
+            sess.update({'is_authenticated': True})
 
     def tearDown(self):
         shutil.rmtree(manager.data_path)

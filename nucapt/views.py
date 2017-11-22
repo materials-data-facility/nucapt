@@ -1,7 +1,7 @@
 import os
 import shutil
 
-from flask import render_template, request, redirect
+from flask import render_template, request, redirect, url_for, flash, session, current_app
 from werkzeug.utils import secure_filename
 
 from nucapt import app
@@ -10,6 +10,8 @@ from nucapt.forms import DatasetForm, APTSampleForm, APTCollectionMethodForm, AP
     AddAPTReconstructionForm, APTSamplePreparationForm
 from nucapt.manager import APTDataDirectory, APTSampleDirectory, APTReconstruction
 import nucapt.manager as manager
+from nucapt.decorators import authenticated
+from nucapt.utils import load_portal_client
 
 
 @app.route("/")
@@ -18,6 +20,99 @@ def index():
     return render_template('home.html')
 
 
+## GlobusAuth-related pages
+@app.route('/login', methods=['GET'])
+def login():
+    """Send the user to Globus Auth."""
+    return redirect(url_for('authcallback'))
+
+
+@app.route('/authcallback', methods=['GET'])
+def authcallback():
+    """Handles the interaction with Globus Auth."""
+    # If we're coming back from Globus Auth in an error state, the error
+    # will be in the "error" query string parameter.
+    if 'error' in request.args:
+        flash("You could not be logged into the portal: " +
+              request.args.get('error_description', request.args['error']))
+        return redirect(url_for('home'))
+
+    # Set up our Globus Auth/OAuth2 state
+    redirect_uri = url_for('authcallback', _external=True)
+
+    client = load_portal_client()
+    client.oauth2_start_flow(redirect_uri,
+                             refresh_tokens=True,
+                             requested_scopes=app.config['SCOPES'])
+
+    # If there's no "code" query string parameter, we're in this route
+    # starting a Globus Auth login flow.
+    if 'code' not in request.args:
+        additional_authorize_params = (
+            {'signup': 1} if request.args.get('signup') else {})
+
+        auth_uri = client.oauth2_get_authorize_url(
+            additional_params=additional_authorize_params)
+
+        return redirect(auth_uri)
+    else:
+        # If we do have a "code" param, we're coming back from Globus Auth
+        # and can start the process of exchanging an auth code for a token.
+        code = request.args.get('code')
+        tokens = client.oauth2_exchange_code_for_tokens(code)
+
+        id_token = tokens.decode_id_token(client)
+        session.update(
+            tokens=tokens.by_resource_server,
+            is_authenticated=True,
+            name=id_token.get('name', ''),
+            email=id_token.get('email', ''),
+            institution=id_token.get('institution', ''),
+            primary_username=id_token.get('preferred_username'),
+            primary_identity=id_token.get('sub'),
+        )
+
+        return redirect(url_for('index'))
+
+
+@app.route('/logout', methods=['GET'])
+@authenticated
+def logout():
+    """
+    - Revoke the tokens with Globus Auth.
+    - Destroy the session state.
+    - Redirect the user to the Globus Auth logout page.
+    """
+    client = load_portal_client()
+
+    # Revoke the tokens with Globus Auth
+    for token, token_type in (
+            (token_info[ty], ty)
+            # get all of the token info dicts
+            for token_info in session['tokens'].values()
+            # cross product with the set of token types
+            for ty in ('access_token', 'refresh_token')
+            # only where the relevant token is actually present
+            if token_info[ty] is not None):
+        client.oauth2_revoke_token(
+            token, additional_params={'token_type_hint': token_type})
+
+    # Destroy the session state
+    session.clear()
+
+    redirect_uri = url_for('index', _external=True)
+
+    ga_logout_url = []
+    ga_logout_url.append(app.config['GLOBUS_AUTH_LOGOUT_URI'])
+    ga_logout_url.append('?client={}'.format(app.config['PORTAL_CLIENT_ID']))
+    ga_logout_url.append('&redirect_uri={}'.format(redirect_uri))
+    ga_logout_url.append('&redirect_name=NUCAPT DMS')
+
+    # Redirect the user to the Globus Auth logout page
+    return redirect(''.join(ga_logout_url))
+
+
+@authenticated
 @app.route("/create", methods=['GET', 'POST'])
 def create():
     """Create a new dataset"""
@@ -32,6 +127,7 @@ def create():
                            navbar=[('Create Dataset', '#')])
 
 
+@authenticated
 @app.route("/dataset/<name>/edit", methods=['GET', 'POST'])
 def edit_dataset(name):
     """Edit dataset metadata"""
@@ -57,7 +153,9 @@ def edit_dataset(name):
         return render_template('dataset_create.html', title=title, description=description, form=form, navbar=navbar)
 
 
+
 @app.route("/dataset/<name>")
+@authenticated
 def display_dataset(name):
     """Display metadata about a certain dataset"""
     errors = []
@@ -75,6 +173,7 @@ def display_dataset(name):
 
 
 @app.route("/datasets")
+@authenticated
 def list_datasets():
     """List all datasets currently stored at default data path"""
 
@@ -85,6 +184,7 @@ def list_datasets():
 
 
 @app.route("/dataset/<name>/sample/create", methods=['GET', 'POST'])
+@authenticated
 def create_sample(name):
     """Create a new sample for a dataset"""
 
@@ -126,6 +226,7 @@ def create_sample(name):
 
 
 @app.route("/dataset/<dataset_name>/sample/<sample_name>")
+@authenticated
 def view_sample(dataset_name, sample_name):
     """View metadata about sample"""
 
@@ -158,6 +259,7 @@ def view_sample(dataset_name, sample_name):
 
 
 @app.route("/dataset/<dataset_name>/sample/<sample_name>/edit_info", methods=['GET', 'POST'])
+@authenticated
 def edit_sample_information(dataset_name, sample_name):
     """View metadata about sample"""
 
@@ -177,6 +279,7 @@ def edit_sample_information(dataset_name, sample_name):
 
 
 @app.route("/dataset/<dataset_name>/sample/<sample_name>/edit_collection", methods=['GET', 'POST'])
+@authenticated
 def edit_collection_information(dataset_name, sample_name):
     """View metadata about sample"""
 
@@ -196,6 +299,7 @@ def edit_collection_information(dataset_name, sample_name):
 
 
 @app.route("/dataset/<dataset_name>/sample/<sample_name>/edit_preparation", methods=['GET', 'POST'])
+@authenticated
 def edit_sample_preparation(dataset_name, sample_name):
     """View metadata about sample"""
 
@@ -263,6 +367,7 @@ def edit_sample_metadata(dataset_name, edit_page, my_form, sample, sample_metada
 
 
 @app.route("/dataset/<dataset_name>/sample/<sample_name>/recon/create", methods=['GET', 'POST'])
+@authenticated
 def create_reconstruction(dataset_name, sample_name):
     navbar = [(dataset_name, '/dataset/%s' % dataset_name),
               (sample_name, '/dataset/%s/sample/%s' % (dataset_name, sample_name)),
@@ -324,11 +429,11 @@ def create_reconstruction(dataset_name, sample_name):
 
 
 @app.route("/dataset/<dataset_name>/sample/<sample_name>/recon/<recon_name>")
+@authenticated
 def view_reconstruction(dataset_name, sample_name, recon_name):
     navbar = [(dataset_name, '/dataset/%s' % dataset_name),
               (sample_name, '/dataset/%s/sample/%s' % (dataset_name, sample_name)),
               (recon_name, '#')]
-
 
     errors = []
     try:
