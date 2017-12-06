@@ -7,6 +7,7 @@ from datetime import date
 from glob import glob
 
 import six
+import yaml
 
 import nucapt
 from nucapt.exceptions import DatasetParseException
@@ -184,6 +185,20 @@ class APTDataDirectory(DataDirectory):
             except DatasetParseException as exc:
                 errors.extend(exc.errors)
         return output, errors
+
+    def mark_as_published(self, publication_id, landing_url):
+        """Mark this dataset as in the process of submission
+
+        :param publication_id: string, identification information"""
+
+        data = {'publication_id': publication_id,
+                'landing_url': landing_url,
+                'submission_date': date.today().strftime("%d%b%y")}
+        yaml.dump(data, open(os.path.join(self.path, 'PublicationData.yaml')))
+
+    def is_published(self):
+        """:return: bool, whether this dataset has been published"""
+        return os.path.isfile(os.path.join(self.path, 'PublicationData.yaml'))
 
 
 class APTSampleDirectory(DataDirectory):

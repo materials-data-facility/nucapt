@@ -35,8 +35,11 @@
         {% endfor %}
     </table>
 
+    {% if not dataset.is_published() %}
     <h2>Actions</h2>
 
     <h3><a href="/dataset/{{name}}/sample/create">Add Sample</a></h3>
     <h3><a href="/dataset/{{name}}/edit">Edit Metadata</a></h3>
+    <h3><a href="/dataset/{{ name }}/publish">Publish to MDF</a></h3>
+    {% endif %}
 {% endblock %}

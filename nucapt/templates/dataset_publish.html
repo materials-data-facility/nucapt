@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Publish {{ data.name }}{% endblock %}
+{% block body %}
+    <script type='text/javascript' language="javascript">
+        $(document).ready(function () {
+            var getNumRows = function () {
+                return $("#author_table").find("tr").length - 1;
+            };
+            if (getNumRows() == 1) {
+                $("#btn-del-row").hide(); // Remove this button at first
+            }
+
+            $("#btn-add-row").click(function () {
+                var numRows = getNumRows();
+
+                // Make a new form row
+                var tr = document.createElement("tr");
+                ['first_name', 'last_name', 'affiliation'].forEach(function (e) {
+                    var td = document.createElement("td");
+                    var input = document.createElement("input");
+                    input.id = 'authors-' + numRows + "-" + e;
+                    input.name = input.id;
+                    input.type = 'text';
+                    td.appendChild(input);
+                    tr.appendChild(td)
+                });
+                $("#author_table tr:last").after(tr);
+
+                if (numRows >= 1) {
+                    $("#btn-del-row").show()
+                }
+            });
+
+            $("#btn-del-row").click(function () {
+                var numRows = getNumRows();
+                if (numRows > 1) {
+                    $("#author_table tr:last").remove();
+                }
+                if (numRows == 2) {
+                    $("#btn-del-row").hide();
+                }
+            })
+        });
+    </script>
+
+    {% from "_utils.html" import render_errors %}
+    <h1>Publishing Dataset <code>{{ data.name }}</code></h1>
+
+    <p>
+        Before publishing your data, please verify:
+        <ol>
+            <li>You can accept the license terms (TBD).</li>
+            <li>All of the data you would like to publish is in this folder.</li>
+            <li>The information below is correct.</li>
+        </ol>
+                the information in the following form before publishing data to the Materials Data Facility.
+        Once you submit this data, our service will create a new dataset on the <a href="http://materialsdatafacility.org">
+        Materials Data Facility</a> and make a copy of your APT data for that dataset.
+    </p>
+
+    <h2>Dataset Metadata</h2>
+    {{ render_errors(errors) }}
+
+    <form class='form-horizontal' method=post>
+        {% from '_form_utils.html' import render_field %}
+        {{ render_field(form.title) }}
+
+        {{ render_field(form.abstract) }}
+
+        <h4>Authors</h4>
+        <table class="table" id="author_table">
+            <tr>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Affiliation</th>
+            </tr>
+            {% for author in form.authors %}
+                <tr>
+                    <td>{{ author.first_name() | safe }}</td>
+                    <td>{{ author.last_name() | safe }}</td>
+                    <td>{{ author.affiliation() | safe }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+        <p>
+            <button type="button" class="btn-sm btn-primary" id="btn-add-row">Add Author</button>
+            <button type="button" class="btn-sm btn-danger" id="btn-del-row">Remove Author</button>
+        </p>
+
+        <div class="form-group">
+            <label for="accept_license">License</label>
+            <p>Check to accept NUCAPT publication license:
+                <input type="checkbox" id="accept_license" name="accept_license" required></p>
+        </div>
+
+        <p><input type="submit" class="btn-lg btn-primary" value="Submit"/></p>
+
+    </form>
+
+{% endblock %}

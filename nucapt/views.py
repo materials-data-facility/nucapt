@@ -1,13 +1,18 @@
 import os
 import shutil
 
-from flask import render_template, request, redirect, url_for, flash, session, current_app
+from flask import render_template, request, redirect, url_for, flash, session
+from globus_sdk.auth.client_types.native_client import NativeAppAuthClient
+from globus_sdk.authorizers.refresh_token import RefreshTokenAuthorizer
+from globus_sdk.transfer.client import TransferClient
+from mdf_toolbox.toolbox import DataPublicationClient
 from werkzeug.utils import secure_filename
+from mdf_toolbox import toolbox
 
 from nucapt import app
 from nucapt.exceptions import DatasetParseException
 from nucapt.forms import DatasetForm, APTSampleForm, APTCollectionMethodForm, APTSampleDescriptionForm, \
-    AddAPTReconstructionForm, APTSamplePreparationForm
+    AddAPTReconstructionForm, APTSamplePreparationForm, PublicationForm
 from nucapt.manager import APTDataDirectory, APTSampleDirectory, APTReconstruction
 import nucapt.manager as manager
 from nucapt.decorators import authenticated
@@ -20,7 +25,7 @@ def index():
     return render_template('home.html')
 
 
-## GlobusAuth-related pages
+# GlobusAuth-related pages
 @app.route('/login', methods=['GET'])
 def login():
     """Send the user to Globus Auth."""
@@ -75,8 +80,8 @@ def authcallback():
         return redirect(url_for('index'))
 
 
-@app.route('/logout', methods=['GET'])
 @authenticated
+@app.route('/logout', methods=['GET'])
 def logout():
     """
     - Revoke the tokens with Globus Auth.
@@ -171,6 +176,69 @@ def display_dataset(name):
     return render_template('dataset.html', name=name, dataset=dataset, samples=samples, errors=errors,
                            metadata=metadata, navbar=[(name, '/dataset/%s'%name)])
 
+
+@app.route("/dataset/<name>/publish", methods=['GET', 'POST'])
+@authenticated
+def publish_dataset(name):
+    """Publish a dataset to the Materials Data Facility"""
+
+    # Check that this is a good dataset
+    try:
+        data = APTDataDirectory.load_dataset_by_name(name)
+    except (ValueError, AttributeError, DatasetParseException):
+        return redirect("/dataset/" + name)
+
+    if request.method == 'POST':
+        # Get the user data
+        form = PublicationForm(request.form)
+        if not form.validate():
+            raise Exception('Form failed to validate')
+
+
+        # Create the PublicationClient
+        globus_publish_client = DataPublicationClient(authorizer=
+                                                      RefreshTokenAuthorizer(session["tokens"]["publish.api.globus.org"]
+                                                                             ["refresh_token"], load_portal_client()))
+
+        # Create the transfer client
+        mdf_transfer_client = TransferClient(authorizer=
+                                             RefreshTokenAuthorizer(session["tokens"]["transfer.api.globus.org"]
+                                                                    ["refresh_token"], load_portal_client()))
+
+        # For debugging, do not submit anything to Publish
+        if app.config.get('DEBUG', False):
+            print(app.config.get('DEBUG'))
+            return redirect('/dataset/' + name)
+
+        # Create the publication entry
+        try:
+            md_result = globus_publish_client.push_metadata(app.config.get("PUBLISH_COLLECTION"), form.data)
+            pub_endpoint = md_result['globus.shared_endpoint.name']
+            pub_path = os.path.join(md_result['globus.shared_endpoint.path'], "data") + "/"
+            submission_id = md_result["id"]
+        except Exception as e:
+            # TODO: Update status - not Published due to bad metadata
+            raise e
+
+        # Transfer data
+        try:
+            toolbox.quick_transfer(mdf_transfer_client, app.config["WORKING_DATA_ENDPOINT"],
+                                   pub_endpoint, [(data.path, pub_path)], timeout=-1)
+        except Exception as e:
+            # TODO: Update status - not Published due to failed Transfer
+            raise e
+            # Complete submission
+
+        # Mark dataset as complete.
+        landing_url = None
+        data.mark_as_published(submission_id, landing_url)
+
+        # Redirect to Globus Publish webpage
+        return redirect(landing_url)
+    else:
+        form = PublicationForm(**data.get_metadata().metadata)
+
+        return render_template("dataset_publish.html", data=data, form=form)
 
 @app.route("/datasets")
 @authenticated

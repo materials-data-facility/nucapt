@@ -1,4 +1,4 @@
-from wtforms import Form, StringField, TextAreaField, FieldList, FormField, RadioField, FloatField, DecimalField
+from wtforms import Form, StringField, TextAreaField, FieldList, FormField, RadioField, FloatField, BooleanField
 from wtforms.fields.simple import FileField
 from wtforms.validators import NumberRange, Regexp, Optional
 
@@ -143,3 +143,9 @@ class AddAPTReconstructionForm(APTReconstructionForm):
                        render_kw=dict(pattern='\\w+', title='Only word characters allowed: A-Z, a-z, 0-9, and _'),
                        validators=[Regexp('\\w+', message='Reconstruction name can only contain word '
                                                           'characters: A-Z, a-z, 0-9, and _')])
+
+
+class PublicationForm(DatasetForm):
+    """Form for publication into the MDF"""
+
+    accept_license = BooleanField('Accept License', description='Do you accept the data license for NUCAPT?')
