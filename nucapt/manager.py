@@ -17,7 +17,7 @@ from nucapt.metadata import APTDataCollectionMetadata, GeneralMetadata, APTSampl
 # Key variables
 module_dir = os.path.dirname(os.path.abspath(nucapt.__file__))
 template_path = os.path.join(module_dir, '..', 'template_directory')
-data_path = 'working-data'
+data_path = nucapt.app.config['WORKING_PATH']
 
 # Useful lists
 _recon_data_dirs = ['Mass_Spectrum', 'Tip_Composition', '1D_Concentration_Profile', 'Proximity_Histogram',

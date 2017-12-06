@@ -226,8 +226,10 @@ def publish_dataset(name):
 
         # Transfer data
         try:
+            # '/' of the Globus endpoint for the working data is the working data path
+            data_path = '/%s/'%(os.path.relpath(data.path, manager.data_path))
             toolbox.quick_transfer(mdf_transfer_client, app.config["WORKING_DATA_ENDPOINT"],
-                                   pub_endpoint, [(data.path + os.sep, pub_path)], timeout=-1)
+                                   pub_endpoint, [(data_path, pub_path)], timeout=-1)
         except Exception as e:
             # TODO: Update status - not Published due to failed Transfer
             raise e
