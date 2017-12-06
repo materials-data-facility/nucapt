@@ -17,7 +17,7 @@ from nucapt.metadata import APTDataCollectionMetadata, GeneralMetadata, APTSampl
 # Key variables
 module_dir = os.path.dirname(os.path.abspath(nucapt.__file__))
 template_path = os.path.join(module_dir, '..', 'template_directory')
-data_path = 'working_directory'
+data_path = 'working-data'
 
 # Useful lists
 _recon_data_dirs = ['Mass_Spectrum', 'Tip_Composition', '1D_Concentration_Profile', 'Proximity_Histogram',
@@ -194,7 +194,7 @@ class APTDataDirectory(DataDirectory):
         data = {'publication_id': publication_id,
                 'landing_url': landing_url,
                 'submission_date': date.today().strftime("%d%b%y")}
-        yaml.dump(data, open(os.path.join(self.path, 'PublicationData.yaml')))
+        yaml.dump(data, open(os.path.join(self.path, 'PublicationData.yaml'), 'w'))
 
     def is_published(self):
         """:return: bool, whether this dataset has been published"""

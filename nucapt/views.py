@@ -1,5 +1,6 @@
 import os
 import shutil
+import json
 
 from flask import render_template, request, redirect, url_for, flash, session
 from globus_sdk.auth.client_types.native_client import NativeAppAuthClient
@@ -188,6 +189,10 @@ def publish_dataset(name):
     except (ValueError, AttributeError, DatasetParseException):
         return redirect("/dataset/" + name)
 
+    # Check if the dataset has already been published
+    if data.is_published():
+        return redirect("/dataset/" + name)
+
     if request.method == 'POST':
         # Get the user data
         form = PublicationForm(request.form)
@@ -206,8 +211,7 @@ def publish_dataset(name):
                                                                     ["refresh_token"], load_portal_client()))
 
         # For debugging, do not submit anything to Publish
-        if app.config.get('DEBUG', False):
-            print(app.config.get('DEBUG'))
+        if app.config.get('DEBUG_SKIP_PUB', False):
             return redirect('/dataset/' + name)
 
         # Create the publication entry
@@ -223,7 +227,7 @@ def publish_dataset(name):
         # Transfer data
         try:
             toolbox.quick_transfer(mdf_transfer_client, app.config["WORKING_DATA_ENDPOINT"],
-                                   pub_endpoint, [(data.path, pub_path)], timeout=-1)
+                                   pub_endpoint, [(data.path + os.sep, pub_path)], timeout=-1)
         except Exception as e:
             # TODO: Update status - not Published due to failed Transfer
             raise e
@@ -234,7 +238,7 @@ def publish_dataset(name):
         data.mark_as_published(submission_id, landing_url)
 
         # Redirect to Globus Publish webpage
-        return redirect(landing_url)
+        return redirect("/dataset/" + name)
     else:
         form = PublicationForm(**data.get_metadata().metadata)
 

@@ -12,7 +12,8 @@ setup(
         'six==1.10.0',
         'jsonschema==2.6.0',
         'beautifulsoup4==4.6.0',
-        'globus_sdk==1.2.2',
-        'mdf_toolbox==0.1.2'
+        'globus_sdk[jwt]==1.2.2',
+        'mdf_toolbox==0.1.2',
+	'pyopenssl==17.5.0',
     ],
 )
