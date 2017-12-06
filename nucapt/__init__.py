@@ -1,7 +1,10 @@
 from flask import Flask
+from flask_htpasswd import HtPasswdAuth
 
 app = Flask(__name__)
 app.config.from_pyfile('nucapt.conf')
+
+htpasswd = HtPasswdAuth(app)
 
 app.config.update({
     'SCOPES': ['urn:globus:auth:scope:transfer.api.globus.org:all',
