@@ -4,7 +4,10 @@ from flask_htpasswd import HtPasswdAuth
 app = Flask(__name__)
 app.config.from_pyfile('nucapt.conf')
 
-htpasswd = HtPasswdAuth(app)
+if not app.config['DEBUG_SKIP_AUTH']:
+    htpasswd = HtPasswdAuth(app)
+else:
+    print('WARNING: Authentication was disabled!')
 
 app.config.update({
     'SCOPES': ['urn:globus:auth:scope:transfer.api.globus.org:all',
