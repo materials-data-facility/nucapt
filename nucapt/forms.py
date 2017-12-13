@@ -1,5 +1,8 @@
+from datetime import date
+
 from wtforms import Form, StringField, TextAreaField, FieldList, FormField, RadioField, FloatField, BooleanField
 from wtforms.fields.simple import FileField
+from wtforms.fields.html5 import EmailField
 from wtforms.validators import NumberRange, Regexp, Optional
 
 
@@ -22,6 +25,7 @@ class DatasetForm(Form):
     authors = FieldList(FormField(AuthorForm), 'Authors',
                         min_entries=1,
                         description='People associated with this dataset')
+    # TODO: Add MRR-related fields to data file
 
 
 class APTCollectionMethodForm(Form):
@@ -149,3 +153,33 @@ class PublicationForm(DatasetForm):
     """Form for publication into the MDF"""
 
     accept_license = BooleanField('Accept License', description='Do you accept the data license for NUCAPT?')
+    contact_person = StringField('Contact Person', description='Main point of contact')
+    contact_email = EmailField('Contact Email', description='Point of contact email')
+
+    def convert_to_globus_publication(self):
+        """Return the contents of the form in a way that is comptabile with Globus Publish's API.
+
+        :return: dict, metadata in Publish-friendly format"""
+
+        output = dict()
+
+        # Required fields
+        output['accept_license'] = self.data['accept_license']
+
+        # DataCite fields
+        output['dc.title'] = self.data['title']
+        output['dc.publisher'] = 'Materials Data Facility'
+        output['dc.date.issued'] = date.today().strftime("%Y-%m-%d")
+        output['dc.contributor.author'] = ['%s, %s'%(x['last_name'], x['first_name']) for x in self.data['authors']]
+        output['dc.creator.affiliation'] = [x['affiliation'] for x in self.data['authors']]
+
+        # MDF Fields
+        output['mdf-base.data_acquisition_method'] = 'Atom probe tomography'
+        output['mdf-base.primary_product'] = 'Data files'
+        output['mdf-base.description'] = self.data['abstract']
+        output['mdf-base.data_acquisition_location'] = 'NUCAPT'
+
+        # TODO: Add MRR-related fields to data file
+
+
+        return output

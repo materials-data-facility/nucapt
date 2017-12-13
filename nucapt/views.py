@@ -1,9 +1,7 @@
 import os
 import shutil
-import json
 
 from flask import render_template, request, redirect, url_for, flash, session
-from globus_sdk.auth.client_types.native_client import NativeAppAuthClient
 from globus_sdk.authorizers.refresh_token import RefreshTokenAuthorizer
 from globus_sdk.transfer.client import TransferClient
 from mdf_toolbox.toolbox import DataPublicationClient
@@ -15,8 +13,7 @@ from nucapt.exceptions import DatasetParseException
 from nucapt.forms import DatasetForm, APTSampleForm, APTCollectionMethodForm, APTSampleDescriptionForm, \
     AddAPTReconstructionForm, APTSamplePreparationForm, PublicationForm
 from nucapt.manager import APTDataDirectory, APTSampleDirectory, APTReconstruction
-import nucapt.manager as manager
-from nucapt.decorators import authenticated
+from nucapt.decorators import authenticated, check_if_published
 from nucapt.utils import load_portal_client
 
 
@@ -134,24 +131,25 @@ def create():
 
 
 @authenticated
-@app.route("/dataset/<name>/edit", methods=['GET', 'POST'])
-def edit_dataset(name):
+@app.route("/dataset/<dataset_name>/edit", methods=['GET', 'POST'])
+@check_if_published
+def edit_dataset(dataset_name):
     """Edit dataset metadata"""
 
     title = 'Edit Dataset'
     description = 'Edit the general metadata of a dataset'
-    navbar = [(name, '/dataset/%s'%name), ('Edit', '#')]
+    navbar = [(dataset_name, '/dataset/%s' % dataset_name), ('Edit', '#')]
 
     try:
-        dataset = APTDataDirectory.load_dataset_by_name(name)
+        dataset = APTDataDirectory.load_dataset_by_name(dataset_name)
     except (ValueError, AttributeError, DatasetParseException):
-        return redirect("/dataset/" + name)
+        return redirect("/dataset/" + dataset_name)
 
     if request.method == 'POST':
         form = DatasetForm(request.form)
         if form.validate():
             dataset.update_metadata(form)
-            return redirect('/dataset/' + name)
+            return redirect('/dataset/' + dataset_name)
         else:
             return render_template('dataset_create.html', title=title, description=description, form=form, navbar=navbar)
     else:
@@ -159,64 +157,65 @@ def edit_dataset(name):
         return render_template('dataset_create.html', title=title, description=description, form=form, navbar=navbar)
 
 
-
-@app.route("/dataset/<name>")
+@app.route("/dataset/<dataset_name>")
 @authenticated
-def display_dataset(name):
+def display_dataset(dataset_name):
     """Display metadata about a certain dataset"""
     errors = []
     try:
-        dataset = APTDataDirectory.load_dataset_by_name(name)
+        dataset = APTDataDirectory.load_dataset_by_name(dataset_name)
     except DatasetParseException as exc:
         dataset = None
         errors = exc.errors
-        return render_template('dataset.html', name=name, dataset=dataset, errors=errors, navbar=[(name, '/dataset/%s' % name)])
+        return render_template('dataset.html', name=dataset_name, dataset=dataset, errors=errors, navbar=[(dataset_name, '/dataset/%s' % dataset_name)])
     samples, sample_errors = dataset.list_samples()
     errors.extend(sample_errors)
     metadata = dataset.get_metadata()
-    return render_template('dataset.html', name=name, dataset=dataset, samples=samples, errors=errors,
-                           metadata=metadata, navbar=[(name, '/dataset/%s'%name)])
+    return render_template('dataset.html', name=dataset_name, dataset=dataset, samples=samples, errors=errors,
+                           metadata=metadata, navbar=[(dataset_name, '/dataset/%s' % dataset_name)])
 
 
-@app.route("/dataset/<name>/publish", methods=['GET', 'POST'])
+@app.route("/dataset/<dataset_name>/publish", methods=['GET', 'POST'])
 @authenticated
-def publish_dataset(name):
+@check_if_published
+def publish_dataset(dataset_name):
     """Publish a dataset to the Materials Data Facility"""
+
+    navbar = [(dataset_name, '/dataset/%s' % dataset_name), ('Publish', '#')]
 
     # Check that this is a good dataset
     try:
-        data = APTDataDirectory.load_dataset_by_name(name)
+        data = APTDataDirectory.load_dataset_by_name(dataset_name)
     except (ValueError, AttributeError, DatasetParseException):
-        return redirect("/dataset/" + name)
+        return redirect("/dataset/" + dataset_name)
 
     # Check if the dataset has already been published
-    if data.is_published():
-        return redirect("/dataset/" + name)
-
     if request.method == 'POST':
         # Get the user data
         form = PublicationForm(request.form)
         if not form.validate():
             raise Exception('Form failed to validate')
 
+        # For debugging, do not submit anything to Publish
+        if app.config.get('DEBUG_SKIP_PUB', False):
+            data.mark_as_published('DEBUG', 'DEBUG')
+            return redirect('/dataset/' + dataset_name)
 
         # Create the PublicationClient
         globus_publish_client = DataPublicationClient(authorizer=
-                                                      RefreshTokenAuthorizer(session["tokens"]["publish.api.globus.org"]
-                                                                             ["refresh_token"], load_portal_client()))
+                                                      RefreshTokenAuthorizer(
+                                                          session["tokens"]["publish.api.globus.org"]
+                                                          ["refresh_token"], load_portal_client()))
 
         # Create the transfer client
         mdf_transfer_client = TransferClient(authorizer=
                                              RefreshTokenAuthorizer(session["tokens"]["transfer.api.globus.org"]
                                                                     ["refresh_token"], load_portal_client()))
 
-        # For debugging, do not submit anything to Publish
-        if app.config.get('DEBUG_SKIP_PUB', False):
-            return redirect('/dataset/' + name)
-
         # Create the publication entry
         try:
-            md_result = globus_publish_client.push_metadata(app.config.get("PUBLISH_COLLECTION"), form.data)
+            md_result = globus_publish_client.push_metadata(app.config.get("PUBLISH_COLLECTION"),
+                                                            form.convert_to_globus_publication())
             pub_endpoint = md_result['globus.shared_endpoint.name']
             pub_path = os.path.join(md_result['globus.shared_endpoint.path'], "data") + "/"
             submission_id = md_result["id"]
@@ -227,7 +226,7 @@ def publish_dataset(name):
         # Transfer data
         try:
             # '/' of the Globus endpoint for the working data is the working data path
-            data_path = '/%s/'%(os.path.relpath(data.path, manager.data_path))
+            data_path = '/%s/'%(os.path.relpath(data.path, app.config('WORKING_PATH')))
             toolbox.quick_transfer(mdf_transfer_client, app.config["WORKING_DATA_ENDPOINT"],
                                    pub_endpoint, [(data_path, pub_path)], timeout=-1)
         except Exception as e:
@@ -240,35 +239,39 @@ def publish_dataset(name):
         data.mark_as_published(submission_id, landing_url)
 
         # Redirect to Globus Publish webpage
-        return redirect("/dataset/" + name)
+        return redirect("/dataset/" + dataset_name)
     else:
-        form = PublicationForm(**data.get_metadata().metadata)
+        default_values = data.get_metadata().metadata
+        default_values['contact_person'] = session.get('name')
+        default_values['contact_email'] = session.get('email')
+        form = PublicationForm(**default_values)
 
-        return render_template("dataset_publish.html", data=data, form=form)
+        return render_template("dataset_publish.html", data=data, form=form, navbar=navbar)
 
 @app.route("/datasets")
 @authenticated
 def list_datasets():
     """List all datasets currently stored at default data path"""
 
-    dir_info = APTDataDirectory.get_all_datasets(manager.data_path)
+    dir_info = APTDataDirectory.get_all_datasets(app.config['WORKING_PATH'])
     dir_valid = dict([(dir, isinstance(info,APTDataDirectory)) for dir,info in dir_info.items()])
     return render_template("dataset_list.html", dir_info=dir_info, dir_valid=dir_valid,
                            navbar=[('List Datasets', '#')])
 
 
-@app.route("/dataset/<name>/sample/create", methods=['GET', 'POST'])
+@app.route("/dataset/<dataset_name>/sample/create", methods=['GET', 'POST'])
+@check_if_published
 @authenticated
-def create_sample(name):
+def create_sample(dataset_name):
     """Create a new sample for a dataset"""
 
-    navbar = [(name, 'dataset/%s'%name), ('Create Sample', '#')]
+    navbar = [(dataset_name, 'dataset/%s' % dataset_name), ('Create Sample', '#')]
 
     # Load in the dataset
     try:
-        dataset = APTDataDirectory.load_dataset_by_name(name)
+        dataset = APTDataDirectory.load_dataset_by_name(dataset_name)
     except DatasetParseException as exc:
-        return redirect('/dataset/' + name)
+        return redirect('/dataset/' + dataset_name)
 
     # Initialize form data
     form = APTSampleForm(request.form) \
@@ -278,25 +281,25 @@ def create_sample(name):
     if request.method == 'POST' and form.validate():
         # attempt to validate the metadata
         try:
-            sample_name = APTSampleDirectory.create_sample(name, form)
+            sample_name = APTSampleDirectory.create_sample(dataset_name, form)
         except DatasetParseException as err:
-            return render_template('sample_create.html', form=form, name=name, errors=err.errors, navbar=navbar)
+            return render_template('sample_create.html', form=form, name=dataset_name, errors=err.errors, navbar=navbar)
 
         # If valid, upload the data
-        sample = APTSampleDirectory.load_dataset_by_name(name, sample_name)
+        sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
         rhit_file = request.files['rhit_file']
         if rhit_file.filename.lower().endswith('.rhit'):
             rhit_file.save(os.path.join(sample.path, secure_filename(rhit_file.filename)))
         else:
             # Clear the old sample
             shutil.rmtree(sample.path)
-            return render_template('sample_create.html', form=form, name=name, errors=['File must have extension RHIT'],
+            return render_template('sample_create.html', form=form, name=dataset_name, errors=['File must have extension RHIT'],
                                    navbar=navbar)
 
-        return redirect("/dataset/%s/sample/%s"%(name, sample_name))
+        return redirect("/dataset/%s/sample/%s" % (dataset_name, sample_name))
 
     # If GET request, make a new sample name
-    return render_template('sample_create.html', form=form, name=name, navbar=navbar)
+    return render_template('sample_create.html', form=form, name=dataset_name, navbar=navbar)
 
 
 @app.route("/dataset/<dataset_name>/sample/<sample_name>")
@@ -311,6 +314,9 @@ def view_sample(dataset_name, sample_name):
         sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
     except DatasetParseException as exc:
         return render_template('sample.html', dataset_name=dataset_name, sample=sample, errors=exc.errors, navbar=navbar)
+
+    # Load in the dataset
+    is_published = APTDataDirectory.load_dataset_by_name(dataset_name)
 
     # Load in the sample information
     sample_metadata = None
@@ -329,11 +335,12 @@ def view_sample(dataset_name, sample_name):
                            sample_name=sample_name, sample_metadata=sample_metadata,
                            collection_metadata=collection_metadata, errors=errors,
                            recon_data=list(zip(recon_data, recon_metadata)),
-                           navbar=navbar)
+                           navbar=navbar, is_published=is_published)
 
 
 @app.route("/dataset/<dataset_name>/sample/<sample_name>/edit_info", methods=['GET', 'POST'])
 @authenticated
+@check_if_published
 def edit_sample_information(dataset_name, sample_name):
     """View metadata about sample"""
 
@@ -354,6 +361,7 @@ def edit_sample_information(dataset_name, sample_name):
 
 @app.route("/dataset/<dataset_name>/sample/<sample_name>/edit_collection", methods=['GET', 'POST'])
 @authenticated
+@check_if_published
 def edit_collection_information(dataset_name, sample_name):
     """View metadata about sample"""
 
@@ -374,6 +382,7 @@ def edit_collection_information(dataset_name, sample_name):
 
 @app.route("/dataset/<dataset_name>/sample/<sample_name>/edit_preparation", methods=['GET', 'POST'])
 @authenticated
+@check_if_published
 def edit_sample_preparation(dataset_name, sample_name):
     """View metadata about sample"""
 
@@ -442,6 +451,7 @@ def edit_sample_metadata(dataset_name, edit_page, my_form, sample, sample_metada
 
 @app.route("/dataset/<dataset_name>/sample/<sample_name>/recon/create", methods=['GET', 'POST'])
 @authenticated
+@check_if_published
 def create_reconstruction(dataset_name, sample_name):
     navbar = [(dataset_name, '/dataset/%s' % dataset_name),
               (sample_name, '/dataset/%s/sample/%s' % (dataset_name, sample_name)),
@@ -517,6 +527,9 @@ def view_reconstruction(dataset_name, sample_name, recon_name):
     except DatasetParseException as exc:
         errors = exc.errors
 
+    # Determine whether the dataset has been published
+    is_published = APTDataDirectory.load_dataset_by_name(dataset_name).is_published()
+
     pos_path = None
     rrng_path = None
     try:
@@ -530,4 +543,4 @@ def view_reconstruction(dataset_name, sample_name, recon_name):
         raise
     return render_template('reconstruction.html', dataset_name=dataset_name, sample_name=sample_name,
                            recon_name=recon_name, recon=recon, recon_metadata=recon_metadata, errors=errors,
-                           pos_path=pos_path, rrng_path=rrng_path, navbar=navbar)
+                           pos_path=pos_path, rrng_path=rrng_path, navbar=navbar, is_published=is_published)

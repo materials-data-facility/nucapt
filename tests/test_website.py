@@ -11,16 +11,29 @@ from bs4 import BeautifulSoup
 
 import nucapt
 from nucapt import manager
-from nucapt.manager import APTSampleDirectory, APTReconstruction
+from nucapt.forms import PublicationForm
+from nucapt.manager import APTSampleDirectory, APTReconstruction, APTDataDirectory
 
 
 class TestWebsite(unittest.TestCase):
     def setUp(self):
-        nucapt.app.testing = True
+        # Make a temporary directory
         manager.data_path = tempfile.mkdtemp()
+        nucapt.app.config['WORKING_PATH'] = manager.data_path
+
+        # Set us to testing mode
+        nucapt.app.testing = True
+        nucapt.app.config['DEBUG_SKIP_AUTH'] = True
+        nucapt.app.config['DEBUG_SKIP_PUB'] = True
+
+        # Make the client
         self.app = nucapt.app.test_client()
         with self.app.session_transaction() as sess:
-            sess.update({'is_authenticated': True})
+            sess.update({
+                'is_authenticated': True,
+                'name': 'Test User',
+                'email': 'test@test.edu'
+            })
 
     def tearDown(self):
         shutil.rmtree(manager.data_path)
@@ -266,6 +279,70 @@ class TestWebsite(unittest.TestCase):
 
         self.assertEquals(200, rv.status_code)
         self.assertIn(b'Recon1', rv.data)
+
+    def test_publication(self):
+        """Test dealing with reconstructions"""
+
+        # Create dataset, sample, and reconstruction
+        _, _, dataset_name = self.create_dataset()
+        sample_data, _ = self.create_sample(dataset_name)
+        sample_name = sample_data['sample_name']
+        recon_data, rv = self.create_reconstruction(dataset_name, sample_name)
+
+        # Test getting the request form
+        rv = self.app.get('/dataset/%s/publish'%dataset_name)
+        self.assertEquals(200, rv.status_code)
+        soup = BeautifulSoup(rv.data, 'html.parser')
+        self.assertEqual('test@test.edu', soup.find('input', {'id': 'contact_email'})['value'])
+
+        # Test submitting the publication request
+        submit_form = {
+            'title': 'Sample dataset',
+            'abstract': 'Dataset for unittest',
+            'authors-0-first_name': 'Logan',
+            'authors-0-last_name': 'Ward',
+            'authors-0-affiliation': 'UChicago',
+            'contact_email' : 'test@test.edu',
+            'contact_person': 'Test user',
+            'accept_license': True
+        }
+        rv = self.app.post('/dataset/%s/publish'%dataset_name, data=submit_form)
+        self.assertEquals(302, rv.status_code)
+
+        # Check that the publication file was created
+        self.assertTrue(os.path.isfile(os.path.join(manager.data_path, dataset_name, 'PublicationData.yaml')))
+
+        # Check to make sure that trying to publish again sends you back to the main page
+        rv = self.app.post('/dataset/%s/publish'%dataset_name, data=submit_form, follow_redirects=True)
+        self.assertEquals(200, rv.status_code)
+        self.assertIn(b'has already been published', rv.data)
+
+        # Make sure that dataset page is missing links named edit
+        soup = BeautifulSoup(rv.data, 'html.parser')
+        for a in soup.find_all('a'):
+            self.assertNotIn('edit', a['href'])
+            self.assertNotIn('create', a['href'])
+
+        # Check that the 'edit' links from sample and reconstruction pages are also gone
+        for page in ['/dataset/%s/sample/%s'%(dataset_name, sample_name),
+                     '/dataset/%s/sample/%s/recon/%s'% (dataset_name, sample_name, recon_data['name'])]:
+            rv = self.app.get(page)
+            soup = BeautifulSoup(rv.data, 'html.parser')
+            for a in soup.find_all('a'):
+                self.assertNotIn('edit', a['href'])
+                self.assertNotIn('edit', a['href'])
+
+        # Check that the edit pages are blocked
+        for page in ['/dataset/%s/sample/create'% dataset_name,
+                     '/dataset/%s/sample/%s/recon/create'% (dataset_name, sample_name),
+                     '/dataset/%s/edit' % dataset_name,
+                     '/dataset/%s/sample/%s/edit_info' % (dataset_name, sample_name),
+                     '/dataset/%s/sample/%s/edit_collection' % (dataset_name, sample_name),
+                     '/dataset/%s/sample/%s/edit_preparation' % (dataset_name, sample_name),
+                     ]:
+            rv = self.app.get(page, follow_redirects=True)
+            self.assertEquals(200, rv.status_code)
+            self.assertIn(b'has already been published', rv.data)
 
     def create_reconstruction(self, dataset_name, sample_name, recon_name='Recon1'):
         """Add a reconstruction to a sample

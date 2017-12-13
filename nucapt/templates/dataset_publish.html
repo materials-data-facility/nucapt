@@ -53,39 +53,52 @@
             <li>All of the data you would like to publish is in this folder.</li>
             <li>The information below is correct.</li>
         </ol>
-                the information in the following form before publishing data to the Materials Data Facility.
         Once you submit this data, our service will create a new dataset on the <a href="http://materialsdatafacility.org">
         Materials Data Facility</a> and make a copy of your APT data for that dataset.
+        After the submission is complete, you will receive an email
     </p>
 
-    <h2>Dataset Metadata</h2>
     {{ render_errors(errors) }}
 
     <form class='form-horizontal' method=post>
+
+        <h2>Dataset Metadata</h2>
+
+        <p>Metadata related to the description of the dataset.</p>
+
         {% from '_form_utils.html' import render_field %}
         {{ render_field(form.title) }}
 
         {{ render_field(form.abstract) }}
 
-        <h4>Authors</h4>
-        <table class="table" id="author_table">
-            <tr>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Affiliation</th>
-            </tr>
-            {% for author in form.authors %}
+        <div class="form-group">
+            <label>Authors</label>
+            <table class="table" id="author_table">
                 <tr>
-                    <td>{{ author.first_name() | safe }}</td>
-                    <td>{{ author.last_name() | safe }}</td>
-                    <td>{{ author.affiliation() | safe }}</td>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Affiliation</th>
                 </tr>
-            {% endfor %}
-        </table>
-        <p>
-            <button type="button" class="btn-sm btn-primary" id="btn-add-row">Add Author</button>
-            <button type="button" class="btn-sm btn-danger" id="btn-del-row">Remove Author</button>
-        </p>
+                {% for author in form.authors %}
+                    <tr>
+                        <td>{{ author.first_name() | safe }}</td>
+                        <td>{{ author.last_name() | safe }}</td>
+                        <td>{{ author.affiliation() | safe }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+            <p>
+                <button type="button" class="btn-sm btn-primary" id="btn-add-row">Add Author</button>
+                <button type="button" class="btn-sm btn-danger" id="btn-del-row">Remove Author</button>
+            </p>
+        </div>
+
+        <h2>Publication Information</h2>
+
+        <p>Information required for the publication process.</p>
+
+        {{ render_field(form.contact_person) }}
+        {{ render_field(form.contact_email) }}
 
         <div class="form-group">
             <label for="accept_license">License</label>
