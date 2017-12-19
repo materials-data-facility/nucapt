@@ -1,6 +1,7 @@
 from flask import redirect, request, session, url_for
 from functools import wraps
 
+from flask.globals import current_app
 from flask.helpers import flash
 from flask.templating import render_template
 
@@ -13,11 +14,14 @@ def authenticated(fn):
     """Mark a route as requiring authentication."""
     @wraps(fn)
     def decorated_function(*args, **kwargs):
+        # Check whether user is logged in to Globus
         if not session.get('is_authenticated'):
             return redirect(url_for('login', next=request.url))
 
-        if not is_group_member():
-            return render_template('groups.html')
+        # Check whether user is authorized to use this system
+        if not current_app.config['DEBUG_SKIP_AUTH']:
+            if not is_group_member():
+                return render_template('groups.html')
 
         if request.path == '/logout':
             return fn(*args, **kwargs)

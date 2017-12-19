@@ -3,6 +3,9 @@ from flask import Flask
 app = Flask(__name__)
 app.config.from_pyfile('nucapt.conf')
 
+if app.config['DEBUG_SKIP_AUTH']:
+    print('WARNING: Skipping authorization for debugging purposes!')
+
 app.config.update({
     'SCOPES': ['urn:globus:auth:scope:transfer.api.globus.org:all',
                'openid', 'email', 'profile',
