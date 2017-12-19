@@ -1,6 +1,9 @@
 from flask import request, session
 
 import globus_sdk
+from globus_sdk.authorizers.refresh_token import RefreshTokenAuthorizer
+
+from globus_nexus_client import NexusClient
 
 try:
     from urllib.parse import urlparse, urljoin
@@ -38,3 +41,15 @@ def get_safe_redirect():
         return url
 
     return '/'
+
+
+def is_group_member():
+    """Check whether authenticated user is a member of the NUCAPT group"""
+    nexus_client = NexusClient(authorizer=RefreshTokenAuthorizer(session["tokens"]["nexus.api.globus.org"]
+                                                                 ["refresh_token"], load_portal_client()))
+    reply = nexus_client.list_groups(for_all_identities='true', my_roles=['admin', 'manager', 'member'])
+
+    for group in reply.data:
+        if group['id'] == current_app.config['GROUP_ID']:
+            return group['my_status'] == 'active'
+    return False

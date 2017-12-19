@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Authorization Required{% endblock %}
+{% block body %}
+    <h1>Authorization Required</h1>
+
+    <p>You need to be a member of the NUCAPT User Group to access this webpage. Follow the link below to request access</p>
+
+    <h2><a href="https://www.globus.org/app/groups/{{ config["GROUP_ID"] }}">Request Access</a></h2>
+{% endblock %}

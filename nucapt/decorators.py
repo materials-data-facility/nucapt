@@ -2,9 +2,11 @@ from flask import redirect, request, session, url_for
 from functools import wraps
 
 from flask.helpers import flash
+from flask.templating import render_template
 
 from nucapt.exceptions import DatasetParseException
 from nucapt.manager import APTDataDirectory
+from nucapt.utils import is_group_member
 
 
 def authenticated(fn):
@@ -13,6 +15,9 @@ def authenticated(fn):
     def decorated_function(*args, **kwargs):
         if not session.get('is_authenticated'):
             return redirect(url_for('login', next=request.url))
+
+        if not is_group_member():
+            return render_template('groups.html')
 
         if request.path == '/logout':
             return fn(*args, **kwargs)

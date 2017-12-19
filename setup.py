@@ -15,6 +15,6 @@ setup(
         'globus_sdk[jwt]==1.2.2',
         'mdf_toolbox==0.1.2',
         'pyopenssl==17.5.0',
-        'flask_htpasswd==0.3.1'
+        'globus_nexus_client==0.2.6'
     ],
 )
