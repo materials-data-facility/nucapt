@@ -316,7 +316,7 @@ def view_sample(dataset_name, sample_name):
         return render_template('sample.html', dataset_name=dataset_name, sample=sample, errors=exc.errors, navbar=navbar)
 
     # Load in the dataset
-    is_published = APTDataDirectory.load_dataset_by_name(dataset_name)
+    is_published = APTDataDirectory.load_dataset_by_name(dataset_name).is_published()
 
     # Load in the sample information
     sample_metadata = None

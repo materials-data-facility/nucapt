@@ -150,6 +150,7 @@ class TestWebsite(unittest.TestCase):
         self.assertEquals(rv.status_code, 200)
 
         self.assertTrue(b'No reconstructions' in rv.data)
+        self.assertTrue(b'Add Reconstruction' in rv.data)
 
         # Make sure creating a second sample fails
         data, rv = self.create_sample(dataset_name, 'Sample1')
