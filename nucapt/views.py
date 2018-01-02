@@ -289,8 +289,8 @@ def create_sample(dataset_name):
         sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
 
         # If present, upload file
-        rhit_file = request.files['rhit_file']
-        if rhit_file.filename == "":
+        rhit_file = request.files.get('rhit_file', None)
+        if 'rhit_file' not in request.files or rhit_file.filename == "":
             pass  # Do nothing
         elif rhit_file.filename.lower().endswith('.rhit'):
             rhit_file.save(os.path.join(sample.path, secure_filename(rhit_file.filename)))
