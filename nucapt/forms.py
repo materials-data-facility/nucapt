@@ -37,19 +37,18 @@ class APTCollectionMethodForm(Form):
                              default='4000 Si X')
     evaporation_mode = RadioField('Evaporation Mode', choices=[('voltage', 'Voltage'), ('laser', 'Laser')],
                                   description='Method used to evaporate sample',
-                                  default='voltage')
+                                  default='laser')
     voltage_ratio = FloatField('Voltage Ratio', description='Voltage ratio used in evaporation',
                                validators=[NumberRange(min=0, message='Voltage ratio must be positive')],
                                default=1)
     laser_pulse_energy = FloatField('Laser Pulse Energy', description='Laser pulse energy used in evaporation (pJ)',
                                     validators=[NumberRange(min=0, message='Energy must be positive')],
                                     default=1)
-    laser_frequency = FloatField('Laser Frequency', description='Laser frequency (kHz)',
+    laser_frequency = FloatField('Laser Frequency', description='Laser pulse repetition rate (kHz)',
                                  validators=[NumberRange(min=0, message='Frequency must be positive')],
                                  default=1)
     temperature = FloatField('Temperature', description='Temperature (K)', default=1)
-    detection_rate = FloatField('Detection Rate', description='Detection rate (ions/pulse)', default=1)
-    starting_voltage = FloatField('Starting Voltage', description='Starting voltage (kV)', default=1)
+    detection_rate = FloatField('Detection Rate', description='Detection rate (%)', default=1)
     chamber_pressure = FloatField('Chamber Vacuum Pressure', description='Chamber pressure (torr)', default=1)
     misc = FieldList(FormField(KeyValueForm), 'Other Metadata', description='Anything else that is pertinent')
 
@@ -60,7 +59,6 @@ class APTSampleElectropolishingForm(Form):
     solution = StringField('Solution', description='Electropolishing solution', validators=[Optional()])
     voltage = FloatField('Voltage', description='Electropolishing voltage (V)', validators=[Optional()])
     temperature = FloatField('Temperature', description='Electropolishing temperature (C)', validators=[Optional()])
-    electrode_shape = StringField('Electrode Shape', description='Shape of electrode', validators=[Optional()])
 
 
 class APTFIBLiftoutStepForm(Form):

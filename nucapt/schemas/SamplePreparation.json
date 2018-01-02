@@ -29,10 +29,6 @@
           "temperature": {
             "type": "number",
             "description": "Temperature. Units: celcius"
-          },
-          "electrode_shape": {
-            "type": "string",
-            "description": "Shape of the electrode"
           }
         }
       }
@@ -53,7 +49,7 @@
             },
             "wedge_dimension": {
               "type": "number",
-              "description": "Wedge dimesions: Units: um"
+              "description": "Wedge dimensions: Units: um"
             },
             "ion_voltage": {
               "type": "number",

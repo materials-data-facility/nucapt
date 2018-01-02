@@ -29,7 +29,7 @@
     },
     "laser_frequency": {
       "type": "number",
-      "description": "Laser frequency (kHz)",
+      "description": "Laser pulse repetition rate (kHz)",
       "minimum": 0
     },
     "temperature": {
@@ -38,12 +38,8 @@
     },
     "detection_rate": {
       "type": "number",
-      "description": "Detection rate (ion/pulse)",
+      "description": "Detection rate (%)",
       "minimum": 0
-    },
-    "starting_voltage": {
-      "type": "number",
-      "description": "Starting voltage (kV)"
     },
     "chamber_pressure": {
       "type": "number",

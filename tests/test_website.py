@@ -390,7 +390,6 @@ class TestWebsite(unittest.TestCase):
             'preparation_form-electropolish-0-solution': 'water',
             'preparation_form-electropolish-0-temperature': 1,
             'preparation_form-electropolish-0-voltage': 1,
-            'preparation_form-electropolish-0-electrode_shape': 'round',
             'rhit_file': (BytesIO(b'My RHIT file contents'), 'EXAMPLE.RHIT')
         }
         rv = self.app.post('/dataset/%s/sample/create' % dataset_name, data=data)

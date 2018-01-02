@@ -7,6 +7,7 @@
             // Script for selectively showing only part of the form
             var volt_ratio= $('#{{ form_prefix }}voltage_ratio').parent();
             var laser_eng = $('#{{ form_prefix }}laser_pulse_energy').parent();
+            var laser_freq = $('#{{ form_prefix }}laser_frequency').parent();
             var pickSubForm = function () {
                 var method = $("input[name='{{ form_prefix }}evaporation_mode']:checked").val();
                 volt_ratio.hide();
@@ -15,9 +16,12 @@
                     volt_ratio.show();
                     volt_ratio.find('input').attr('required', '');
                     laser_eng.find('input').removeAttr('required');
+                    laser_freq.find('input').removeAttr('required');
                 } else {
                     laser_eng.show();
                     laser_eng.find('input').removeAttr('required');
+                    laser_freq.show();
+                    laser_freq.find('input').removeAttr('required');
                     volt_ratio.find('input').attr('required', '');
                 }
             };
@@ -35,11 +39,11 @@
 
     {{ render_field(form.laser_pulse_energy) }}
 
+    {{ render_field(form.laser_frequency) }}
+
     {{ render_field(form.temperature) }}
 
     {{ render_field(form.detection_rate) }}
-
-    {{ render_field(form.starting_voltage) }}
 
     {{ render_field(form.chamber_pressure) }}
 
@@ -143,7 +147,7 @@
 
                 // Make a new form row
                 var tr = document.createElement("tr");
-                ['solution', 'voltage', 'temperature', 'electrode_shape'].forEach(function (e) {
+                ['solution', 'voltage', 'temperature'].forEach(function (e) {
                     var td = document.createElement("td");
                     var input = document.createElement("input");
                     input.id = '{{ form_prefix }}electropolish-' + numRows + "-" + e;
@@ -185,14 +189,12 @@
                 <th>Solution</th>
                 <th>Voltage (V)</th>
                 <th>Temperature (C)</th>
-                <th>Electrode Shape</th>
             </tr>
             {% for step in form.electropolish %}
                 <tr>
                     <td>{{ step.solution(required="") }}</td>
                     <td>{{ step.voltage(required="") }}</td>
                     <td>{{ step.temperature(required="") }}</td>
-                    <td>{{ step.electrode_shape(required="") }}</td>
                 </tr>
             {% endfor %}
         </table>
