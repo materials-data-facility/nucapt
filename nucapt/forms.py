@@ -116,7 +116,7 @@ class APTSampleForm(Form):
     sample_form = FormField(APTSampleDescriptionForm, description="Metadata for the ")
     collection_form = FormField(APTCollectionMethodForm, description="Metadata for data collection method")
     preparation_form = FormField(APTSamplePreparationForm, description="Metadata for sample preparation")
-    rhit_file = FileField('RHIT file')
+    rhit_file = FileField('RHIT file', validators=[Optional()])
 
 
 class APTReconstructionForm(Form):

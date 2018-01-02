@@ -33,7 +33,7 @@
         <p>A sample is defined by its raw data file (RHIT). You will upload any data from the reconstruction (e.g., RRNG
             files) later</p>
 
-        {{ render_field(form.rhit_file) }}
+        {{ render_field(form.rhit_file, required=False) }}
 
         <p><input type="submit" class="btn-lg btn-primary" value="Create Sample"/></p>
     </form>

@@ -11,8 +11,7 @@ from bs4 import BeautifulSoup
 
 import nucapt
 from nucapt import manager
-from nucapt.forms import PublicationForm
-from nucapt.manager import APTSampleDirectory, APTReconstruction, APTDataDirectory
+from nucapt.manager import APTSampleDirectory, APTReconstruction
 
 
 class TestWebsite(unittest.TestCase):
@@ -233,6 +232,14 @@ class TestWebsite(unittest.TestCase):
         self.assertNotIn('electropolish', prep_metadata.metadata)
         self.assertEquals('metal', prep_metadata['fib_lift_out']['lift_out_step']['capping_material'])
 
+        # Create a sample without an RHIT file
+        data, rv = self.create_sample(dataset_name, 'Sample3', no_rhit=True)
+        self.assertEquals(302, rv.status_code)
+
+        # Make sure the webpage works
+        rv = self.app.get('/dataset/%s/sample/Sample3'%dataset_name)
+        self.assertEquals(200, rv.status_code)
+
     def test_reconstructions(self):
         """Test dealing with reconstructions"""
 
@@ -369,9 +376,10 @@ class TestWebsite(unittest.TestCase):
             data=data
         )
 
-    def create_sample(self, dataset_name, sample_name='Sample1'):
+    def create_sample(self, dataset_name, sample_name='Sample1', no_rhit=False):
         """Create a sample
 
+        :param no_rhit: bool, whether to submit an RHIT file
         :param dataset_name: str, Name of dataset
         :param sample_name: str, Name of sample
         :return: 
@@ -390,8 +398,13 @@ class TestWebsite(unittest.TestCase):
             'preparation_form-electropolish-0-solution': 'water',
             'preparation_form-electropolish-0-temperature': 1,
             'preparation_form-electropolish-0-voltage': 1,
-            'rhit_file': (BytesIO(b'My RHIT file contents'), 'EXAMPLE.RHIT')
         }
+
+        # Add RHIT file, if desired
+        if not no_rhit:
+            data['rhit_file'] = (BytesIO(b'My RHIT file contents'), 'EXAMPLE.RHIT')
+        else:
+            data['rhit_file'] = (None, '')  # This is how Flask receives 'no file'
         rv = self.app.post('/dataset/%s/sample/create' % dataset_name, data=data)
         return data, rv
 

@@ -42,15 +42,20 @@ class DataDirectory:
         :return: DataDirectory"""
         pass
 
-    def _find_file(self, file_type):
+    def _find_file(self, file_type, allow_none=False):
         """File a file with a certain extension in this directory
 
         :param file_type: str, extension of target file
+        :param allow_none: bool, whether to return None if no file found
+            rather than raising an exception
         :return: Path to target file"""
         r = re.compile(r'\.%s' % file_type, re.IGNORECASE)
         file = [f for f in os.listdir(self.path) if r.search(f)]
         if len(file) == 0:
-            raise DatasetParseException('No %s files. Somehow, it got deleted.' % file_type)
+            if allow_none:
+                return None
+            else:
+                raise DatasetParseException('No %s files. Somehow, it got deleted.' % file_type)
         if len(file) > 1:
             raise DatasetParseException('More than 1 %s file! Should be exactly one' % file_type)
         return os.path.join(self.path, file[0])
@@ -241,7 +246,7 @@ class APTSampleDirectory(DataDirectory):
         # Parse the metadata
         general = APTSampleGeneralMetadata.from_form(form.sample_form)
         collection = APTDataCollectionMetadata.from_form(form.collection_form)
-        preperation = APTSamplePreperationMetadata.from_form(form.preparation_form)
+        preparation = APTSamplePreperationMetadata.from_form(form.preparation_form)
 
         # Create a directory and save metadata in it
         sample_name = form.sample_name.data
@@ -260,7 +265,7 @@ class APTSampleDirectory(DataDirectory):
 
         general.to_yaml(sample._get_sample_information_path())
         collection.to_yaml(sample._get_collection_metadata_path())
-        preperation.to_yaml(sample._get_preparation_metadata_path())
+        preparation.to_yaml(sample._get_preparation_metadata_path())
 
         return sample_name
 
@@ -366,10 +371,10 @@ class APTSampleDirectory(DataDirectory):
     def get_rhit_path(self):
         """Get the path to the RHIT file
 
-        :return: str, RHIT path"""
+        :return: str, RHIT path. `None` if file not found"""
 
         # Find the *RHIT file in this directory
-        return self._find_file("RHIT")
+        return self._find_file("RHIT", allow_none=True)
 
     def list_reconstructions(self):
         """Get all reconstructions for this sample

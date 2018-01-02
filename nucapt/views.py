@@ -285,15 +285,20 @@ def create_sample(dataset_name):
         except DatasetParseException as err:
             return render_template('sample_create.html', form=form, name=dataset_name, errors=err.errors, navbar=navbar)
 
-        # If valid, upload the data
+        # Crate the sample
         sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
+
+        # If present, upload file
         rhit_file = request.files['rhit_file']
-        if rhit_file.filename.lower().endswith('.rhit'):
+        if rhit_file.filename == "":
+            pass  # Do nothing
+        elif rhit_file.filename.lower().endswith('.rhit'):
             rhit_file.save(os.path.join(sample.path, secure_filename(rhit_file.filename)))
         else:
             # Clear the old sample
             shutil.rmtree(sample.path)
-            return render_template('sample_create.html', form=form, name=dataset_name, errors=['File must have extension RHIT'],
+            return render_template('sample_create.html', form=form, name=dataset_name,
+                                   errors=['File must have extension RHIT'],
                                    navbar=navbar)
 
         return redirect("/dataset/%s/sample/%s" % (dataset_name, sample_name))

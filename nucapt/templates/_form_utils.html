@@ -1,7 +1,7 @@
-{% macro render_field(field, class="form-control") -%}
+{% macro render_field(field, class="form-control", required=True) -%}
     <div class="form-group {% if field.errors %}has-error{% endif %}">
         {{ field.label }}
-        {{ field(class=class, required="") | safe }}
+        {{ field(class=class, **{"required":""} if required else dict()) | safe }}
         <span class="help-block">{{ field.description }}</span>
         {% if field.errors %}
             {% for error in field.errors %}
