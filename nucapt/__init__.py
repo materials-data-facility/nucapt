@@ -1,7 +1,12 @@
 from flask import Flask
+from flask_sslify import SSLify
 
+# Load in the app
 app = Flask(__name__)
 app.config.from_pyfile('nucapt.conf')
+
+# Redirect all HTTP traffic to HTTPS
+sslify = SSLify(app)
 
 if app.config['DEBUG_SKIP_AUTH']:
     print('WARNING: Skipping authorization for debugging purposes!')
