@@ -6,7 +6,6 @@
 
     {{ render_errors(errors) }}
 
-    {% if recon is not none %}
     <table class="table">
         <tr><th>Location</th><td>{{ recon.path }}</td></tr>
         <tr><th>Title</th><td>{{ recon_metadata['title'] | safe }}</td></tr>
@@ -16,11 +15,36 @@
         {% for item in recon_metadata['metadata'] %}
             <tr><th>{{ item['key'] | safe }}</th><td>{{ item['value'] | safe }}</td></tr>
         {% endfor %}
-    {% endif %}
     </table>
 
     <h2>Files</h2>
 
     <p><strong>POS File</strong> {{ pos_path }}</p>
     <p><strong>RRNG File</strong> {{ rrng_path }}</p>
+
+    <h2>Analysis Results</h2>
+
+    {% set analyses = recon.get_analyses() %}
+    {% if analyses | length == 0 %}
+    <p>No analyses for this reconstruction have been recorded yet.</p>
+    {% else %}
+    <p>The following directories contain the results of analyses performed with
+    the data from this reconstruction.</p>
+
+    <table class="table">
+        <tr><th>Folder Name</th><th>Title</th><th>Creation Date</th><th>Actions</th></tr>
+        {% for name, metadata in recon.get_analyses().items() %}
+        <tr>
+            <td>{{ name }}</td>
+            <td>{{ metadata['title'] }}</td>
+            <td>{{ metadata['creation_date'] }}</td>
+            <td><a href="{{ recon_name }}/analysis/{{ name }}/edit">Edit</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    <h2>Actions</h2>
+
+    <h3><a href="{{ recon_name }}/analysis/create">Add Analysis</a></h3>
 {% endblock %}

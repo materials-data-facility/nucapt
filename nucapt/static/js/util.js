@@ -33,6 +33,7 @@ var keyValueTable = function (tableName, fieldTitle) {
             this.parentNode.parentNode.remove();
         };
         btn.className = "btn-sm btn-danger";
+        btn.setAttribute("name", tableName + "_delete");
         btn.innerHTML = "Delete";
         td.appendChild(btn);
         tr.appendChild(td);

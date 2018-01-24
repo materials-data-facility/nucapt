@@ -30,7 +30,8 @@
                 <td>{{ m.key(required="") | safe }}</td>
                 <td>{{ m.value(required="") | safe }}</td>
                 <td>
-                    <button type="button" class="btn-sm btn-danger" onclick="this.parentNode.parentNode.remove()">
+                    <button type="button" class="btn-sm btn-danger" name="{{ table_name }}_remove"
+                            onclick="this.parentNode.parentNode.remove()">
                         Delete
                     </button>
                 </td>

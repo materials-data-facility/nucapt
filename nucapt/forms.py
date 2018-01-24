@@ -1,4 +1,5 @@
 from datetime import date
+from collections import OrderedDict
 
 from wtforms import Form, StringField, TextAreaField, FieldList, FormField, RadioField, FloatField, BooleanField
 from wtforms.fields.simple import FileField
@@ -178,6 +179,38 @@ class PublicationForm(DatasetForm):
         output['mdf-base.data_acquisition_location'] = 'NUCAPT'
 
         # TODO: Add MRR-related fields to data file
-
-
         return output
+
+
+class AnalysisForm(Form):
+    """Form for the results of a dataset analysis
+
+    TODO: Consider adding fields where users can describe each file being uploaded. The idea would be that the
+    form adds new fields after the user uploads the files"""
+
+    title = StringField('Title', description='Short description of the analysis')
+    folder_name = StringField('Folder Name', description='Name of folder to hold data.',
+                              render_kw=dict(pattern='\\w+',
+                                             title='Only word characters allowed: A-Z, a-z, 0-9, and _'),
+                              validators=[Regexp('\\w+', message='Reconstruction name can only contain word '
+                                                                 'characters: A-Z, a-z, 0-9, and _')])
+    description = TextAreaField('Description', description='Description of what this analysis results are. It is good '
+                                                           'practice to describe the contents of the files you will '
+                                                           'be uploading.')
+    files = FileField('Files', description='Files associated with this analysis', render_kw={'multiple': None})
+    metadata = FieldList(FormField(KeyValueForm), 'Other Metadata', description='Anything else that is pertinent')
+
+    def get_presets(self):
+        """Generate a list of pre-defined names and descriptions
+
+        These lists are used within the website to pre-fill results
+
+        :return: OrderedDict, where each item holds the values for the above forms"""
+
+        return OrderedDict(conc_profile={
+            'name': 'Concentration Profile',
+            'title': 'Concentration Profile',
+            'folder_name': '1D_Concentration_Profile',
+            'description': 'Relative concentration of different elements as a function of distance along sample.',
+            'metadata': {'Measurement Length': '<fill in distance>'}
+        })

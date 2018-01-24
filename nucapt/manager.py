@@ -12,16 +12,12 @@ import yaml
 import nucapt
 from nucapt.exceptions import DatasetParseException
 from nucapt.metadata import APTDataCollectionMetadata, GeneralMetadata, APTSampleGeneralMetadata, \
-    APTReconstructionMetadata, APTSamplePreperationMetadata
+    APTReconstructionMetadata, APTSamplePreparationMetadata, APTAnalysisMetadata
 
 # Key variables
 module_dir = os.path.dirname(os.path.abspath(nucapt.__file__))
 template_path = os.path.join(module_dir, '..', 'template_directory')
 data_path = nucapt.app.config['WORKING_PATH']
-
-# Useful lists
-_recon_data_dirs = ['Mass_Spectrum', 'Tip_Composition', '1D_Concentration_Profile', 'Proximity_Histogram',
-                    '2D_Concentration_Map', 'Component_Distribution', 'Visualization']
 
 
 @six.add_metaclass(ABCMeta)
@@ -246,7 +242,7 @@ class APTSampleDirectory(DataDirectory):
         # Parse the metadata
         general = APTSampleGeneralMetadata.from_form(form.sample_form)
         collection = APTDataCollectionMetadata.from_form(form.collection_form)
-        preparation = APTSamplePreperationMetadata.from_form(form.preparation_form)
+        preparation = APTSamplePreparationMetadata.from_form(form.preparation_form)
 
         # Create a directory and save metadata in it
         sample_name = form.sample_name.data
@@ -348,7 +344,7 @@ class APTSampleDirectory(DataDirectory):
         :return: path to metadata
         """
 
-        self._update_metadata_from_form(APTSamplePreperationMetadata,
+        self._update_metadata_from_form(APTSamplePreparationMetadata,
                                         self._get_preparation_metadata_path(),
                                         form)
 
@@ -357,14 +353,14 @@ class APTSampleDirectory(DataDirectory):
 
         :return: APTSamplePreperationMetadata"""
 
-        return APTSamplePreperationMetadata.from_yaml(self._get_preparation_metadata_path())
+        return APTSamplePreparationMetadata.from_yaml(self._get_preparation_metadata_path())
 
     def get_preparation_metadata(self):
         """Load the sample preparation information from disk
 
         :return: dict, Preparation metadata
         """
-        return APTSamplePreperationMetadata.from_yaml(
+        return APTSamplePreparationMetadata.from_yaml(
             self._get_preparation_metadata_path()
         )
 
@@ -413,8 +409,8 @@ class APTReconstruction(DataDirectory):
         self.recon_name = recon_name
 
     @staticmethod
-    def _make_name(dataset, sample, recon):
-        return '_'.join([dataset, sample, recon])
+    def _make_name(*args):
+        return '_'.join(args)
 
     @classmethod
     def create_reconstruction(cls, form, dataset_name, sample_name, tip_image):
@@ -454,10 +450,7 @@ class APTReconstruction(DataDirectory):
         os.mkdir(path)
         recon = cls.load_dataset_by_path(path)
 
-        # Make the subdirectories for different kinds of data
-        for d in _recon_data_dirs:
-            os.mkdir(os.path.join(path, d))
-
+        # Save the metadata
         metadata.to_yaml(recon._get_metadata_path())
 
         return recon_name
@@ -511,3 +504,108 @@ class APTReconstruction(DataDirectory):
         :return: str, path to RRNG file"""
 
         return self._find_file('RRNG')
+
+    def get_analyses(self):
+        """Gather the names and metadata of folders containing analyses"""
+
+        # Load the results
+        analyses = dict()
+        for file in glob("%s/*/AnalysisMetadata.yaml" % self.path):
+            dirname = os.path.basename(os.path.dirname(file))
+            try:
+                analyses[dirname] = yaml.load(open(file))
+            except Exception as e:
+                analyses[dirname] = {'title': '<b>Metadata file corrupted!</b>'}
+        return analyses
+
+
+class APTAnalysisDirectory(DataDirectory):
+    """Directory associated with the analysis performed on reconstructed APT data"""
+
+    def __init__(self, dataset_name, sample_name, recon_name, analysis_dir, path):
+        """Do not use, use load by name instead"""
+        super(APTAnalysisDirectory, self).__init__("_".join([dataset_name, sample_name, recon_name, analysis_dir]),
+                                                   path)
+        self.dataset_name = dataset_name
+        self.sample_name = sample_name
+        self.recon_name = recon_name
+        self.analysis_dir = analysis_dir
+
+    @classmethod
+    def load_dataset_by_path(cls, path):
+        temp_path, recon_name = os.path.split(path)
+        temp_path, sample_name = os.path.split(temp_path)
+        temp_path, dataset_name = os.path.split(temp_path)
+        temp_path, analysis_dir = os.path.split(temp_path)
+        return cls(dataset_name, sample_name, recon_name, analysis_dir, path)
+
+    @classmethod
+    def load_dataset_by_name(cls, dataset_name, sample_name, recon_name, analysis_dir):
+        """Load an APT reconstruction by name
+
+        :param dataset_name: str, name of dataset
+        :param sample_name: str, name of sample
+        :param recon_name: str, name of reconstruction
+        :param analysis_dir: str, path of the analysis directory
+        :return: APTReconstruction
+        """
+
+        path = cls._make_path(dataset_name, sample_name, recon_name, analysis_dir)
+        return cls(dataset_name, sample_name, recon_name, analysis_dir, path)
+
+    @classmethod
+    def _make_path(cls, dataset_name, sample_name, recon_name, analysis_dir):
+        return os.path.join(data_path, dataset_name, sample_name, recon_name, analysis_dir)
+
+    def _get_metadata_path(self):
+        """Get the path to the metadata file"""
+        return os.path.join(self.path, 'AnalysisMetadata.yaml')
+
+    @classmethod
+    def create_analysis_directory(cls, form, dataset_name, sample_name, recon_name):
+        """Add a new construction to a sample
+
+        :param form: AnalysisForm, Form from web service
+        :param dataset_name: str, name of dataset
+        :param sample_name: str, name of sample
+        :param recon_name: str, name of reconstruction
+        :return: str, Reconstruction name
+        """
+
+        # Get the form data
+        form_data = dict(form.data)
+
+        # Get the analysis name
+        analysis_name = form_data['folder_name']
+
+        # Create the metadata
+        metadata = APTAnalysisMetadata.from_form(form)
+        metadata['creation_date'] = date.today().strftime("%d%b%y")
+
+        # Make the directory and save the metadata
+        path = cls._make_path(dataset_name, sample_name, recon_name, analysis_name)
+        if os.path.isdir(path):
+            raise DatasetParseException('Analysis named %s already exists' % analysis_name)
+        os.mkdir(path)
+        recon = cls.load_dataset_by_path(path)
+        metadata.to_yaml(recon._get_metadata_path())
+
+        return analysis_name
+
+    def update_metadata(self, form):
+        """Update the metadata for this analysis directory
+
+        :param form: AnalysisForm, form containing new metadata"""
+
+        # Read in the new metadata
+        new_metadata = APTAnalysisMetadata.from_form(form)
+
+        # Old metadata has the creation date
+        old_metadata = APTAnalysisMetadata.from_yaml(self._get_metadata_path())
+        old_metadata.metadata.update(new_metadata.metadata)
+        old_metadata.to_yaml(self._get_metadata_path())
+
+    def load_metadata(self):
+        """Read the metadata for this entry"""
+
+        return APTAnalysisMetadata.from_yaml(self._get_metadata_path())

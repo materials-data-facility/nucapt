@@ -109,7 +109,7 @@ class APTReconstructionMetadata(MetadataHolder):
         return os.path.join(schema_path, "ReconstructionMetadata.json")
 
 
-class APTSamplePreperationMetadata(MetadataHolder):
+class APTSamplePreparationMetadata(MetadataHolder):
     """Class to hold metadata about sample preparation"""
 
     def _get_schema_path(self):
@@ -128,4 +128,22 @@ class APTSamplePreperationMetadata(MetadataHolder):
         else:
             del metadata['electropolish']
 
+        return cls(**metadata)
+
+
+class APTAnalysisMetadata(MetadataHolder):
+
+    def _get_schema_path(self):
+        return os.path.join(schema_path, "AnalysisDirectory.json")
+
+    @classmethod
+    def from_form(cls, form):
+        metadata = form.data
+
+        # Remove the fields 'file' and 'folder_name'
+        for k in ['file', 'folder_name']:
+            if k in metadata:
+                del metadata[k]
+
+        # Generate the form
         return cls(**metadata)

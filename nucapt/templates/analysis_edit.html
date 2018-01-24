@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ analysis_name }}{% endblock %}
+{% from '_form_utils.html' import render_field, render_keyvalue_field %}
+{% from "_utils.html" import render_errors %}
+{% block body %}
+    <h1>Edit {{ analysis_name }} for {{ recon_name }}</h1>
+
+    <p>Edit the metadata for a certain analysis.</p>
+
+    {{ render_errors(errors) }}
+
+    <form class='form-horizontal' method=post enctype="multipart/form-data">
+
+        <h2>Analysis Description</h2>
+
+        <p>Describe the analysis. What analysis did you perform? Why did you do it? What data are you uploading?</p>
+
+        {{ render_field(form.title) }}
+
+        {{ render_field(form.description) }}
+
+        {{ render_keyvalue_field(form.metadata, "metadata") }}
+
+        <h2>Data Files</h2>
+        <p>Uploads additional files to this analysis. The current files are not deleted,
+            but they can be overwritten.</p>
+
+        {{ render_field(form.files, required=False) }}
+
+        <p><input type="submit" class="btn-lg btn-primary" value="Edit Analysis Data"/></p>
+
+        <div style="visibility: hidden">
+            <!-- Please disregard the hidden field -->
+            {{ render_field(form.folder_name) }}
+        </div>
+
+    </form>
+{% endblock %}

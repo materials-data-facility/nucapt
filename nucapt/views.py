@@ -11,8 +11,8 @@ from mdf_toolbox import toolbox
 from nucapt import app
 from nucapt.exceptions import DatasetParseException
 from nucapt.forms import DatasetForm, APTSampleForm, APTCollectionMethodForm, APTSampleDescriptionForm, \
-    AddAPTReconstructionForm, APTSamplePreparationForm, PublicationForm
-from nucapt.manager import APTDataDirectory, APTSampleDirectory, APTReconstruction
+    AddAPTReconstructionForm, APTSamplePreparationForm, PublicationForm, AnalysisForm
+from nucapt.manager import APTDataDirectory, APTSampleDirectory, APTReconstruction, APTAnalysisDirectory
 from nucapt.decorators import authenticated, check_if_published
 from nucapt.utils import load_portal_client
 
@@ -549,3 +549,92 @@ def view_reconstruction(dataset_name, sample_name, recon_name):
     return render_template('reconstruction.html', dataset_name=dataset_name, sample_name=sample_name,
                            recon_name=recon_name, recon=recon, recon_metadata=recon_metadata, errors=errors,
                            pos_path=pos_path, rrng_path=rrng_path, navbar=navbar, is_published=is_published)
+
+
+@app.route("/dataset/<dataset_name>/sample/<sample_name>/recon/<recon_name>/analysis/create",
+           methods=['GET', 'POST'])
+@check_if_published
+@authenticated
+def add_analysis_data(dataset_name, sample_name, recon_name):
+    navbar = [(dataset_name, '/dataset/%s' % dataset_name),
+              (sample_name, '/dataset/%s/sample/%s' % (dataset_name, sample_name)),
+              (recon_name, '/dataset/%s/sample/%s/recon/%s' % (dataset_name, sample_name, recon_name)),
+              ('Add Analysis', None)
+              ]
+    errors = []
+    try:
+        # Upload the data
+        recon = APTReconstruction.load_dataset_by_name(dataset_name, sample_name, recon_name)
+    except DatasetParseException as exc:
+        flash('No such reconstruction!')
+        redirect('/dataset/%s/sample/%s' % (dataset_name, sample_name))
+
+    # Create the form
+    form = AnalysisForm(request.form)
+
+    # If POST, process the form
+    if request.method == 'POST' and form.validate():
+        try:
+            # Create the directory
+            analysis_name = APTAnalysisDirectory.create_analysis_directory(form, dataset_name, sample_name, recon_name)
+
+            # Upload the data
+            analysis_name = APTAnalysisDirectory.load_dataset_by_name(dataset_name, sample_name, recon_name, analysis_name)
+            for file in request.files.getlist('files'):
+                file.save(os.path.join(analysis_name.path, secure_filename(file.filename)))
+
+            return redirect("/dataset/%s/sample/%s/recon/%s"%(dataset_name, sample_name, recon_name))
+
+        except DatasetParseException as err:
+            errors.append(err.errors)
+
+    return render_template('analysis_create.html', form=form, dataset_name=dataset_name, sample_name=sample_name,
+                           recon_name=recon_name, recon=recon, errors=errors, navbar=navbar)
+
+
+@app.route("/dataset/<dataset_name>/sample/<sample_name>/recon/<recon_name>/analysis/<analysis_name>/edit",
+           methods=['GET', 'POST'])
+@check_if_published
+@authenticated
+def edit_analysis_metadata(dataset_name, sample_name, recon_name, analysis_name):
+    navbar = [(dataset_name, '/dataset/%s' % dataset_name),
+              (sample_name, '/dataset/%s/sample/%s' % (dataset_name, sample_name)),
+              (recon_name, '/dataset/%s/sample/%s/recon/%s' % (dataset_name, sample_name, recon_name)),
+              ('Edit %s' % analysis_name, None)
+              ]
+
+    errors = []
+    try:
+        # Upload the data
+        analysis = APTAnalysisDirectory.load_dataset_by_name(dataset_name, sample_name, recon_name, analysis_name)
+    except DatasetParseException as exc:
+        flash('No such analysis!')
+        redirect('/dataset/%s/sample/%s/recon/%s' % (dataset_name, sample_name, recon_name))
+
+    # Create the form
+    if request.method == 'POST':
+        form = AnalysisForm(request.form)
+    else:
+        metadata = analysis.load_metadata().metadata
+        metadata['folder_name'] = analysis_name
+        form = AnalysisForm(**metadata)
+
+    # Check if it is valid
+    # If POST, process the form
+    if request.method == 'POST' and form.validate():
+        try:
+            # Update the metadata
+            analysis.update_metadata(form)
+
+            # Upload new files
+            for file in request.files.getlist('files'):
+                file.save(os.path.join(analysis.path, secure_filename(file.filename)))
+
+            return redirect("/dataset/%s/sample/%s/recon/%s" % (dataset_name, sample_name, recon_name))
+
+        except DatasetParseException as err:
+            errors.append(err.errors)
+
+    return render_template('analysis_edit.html', form=form, dataset_name=dataset_name, sample_name=sample_name,
+                           recon_name=recon_name, analysis_name=analysis_name, errors=errors, navbar=navbar)
+

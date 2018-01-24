@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "GeneralMetadata",
+  "description": "Record describing a full APT dataset",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Title of analysis result"
+    },
+    "description": {
+      "type": "string",
+      "description": "Short description of the result"
+    },
+    "metadata": {
+      "type": "array",
+      "description": "Anything else that is pertinent",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

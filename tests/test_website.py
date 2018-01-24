@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 
 import nucapt
 from nucapt import manager
-from nucapt.manager import APTSampleDirectory, APTReconstruction
+from nucapt.manager import APTSampleDirectory, APTReconstruction, APTAnalysisDirectory
 
 
 class TestWebsite(unittest.TestCase):
@@ -273,9 +273,6 @@ class TestWebsite(unittest.TestCase):
         self.assertNotIn('shank_angle', recon.load_metadata().metadata.keys())
         self.assertEquals(recon.load_metadata()['tip_image'], 'tip_image.jpg')
 
-        for d in manager._recon_data_dirs:
-            self.assertTrue(os.path.isdir(os.path.join(recon.path, d)))
-
         # Make sure the webpages update
         rv = self.app.get('/dataset/%s/sample/%s/recon/%s'%(dataset_name, sample_name, 'Recon1'))
 
@@ -287,6 +284,60 @@ class TestWebsite(unittest.TestCase):
 
         self.assertEquals(200, rv.status_code)
         self.assertIn(b'Recon1', rv.data)
+
+    def test_add_analysis(self):
+        """Test dealing with adding analysis data"""
+
+        # Create dataset, sample, and reconstruction
+        _, _, dataset_name = self.create_dataset()
+        sample_data, _ = self.create_sample(dataset_name)
+        sample_name = sample_data['sample_name']
+        recon_data, rv = self.create_reconstruction(dataset_name, sample_name)
+        recon_name = recon_data['name']
+
+        # Make sure the recon page displays 'no analyses'
+        rv = self.app.get('/dataset/%s/sample/%s/recon/%s' % (dataset_name, sample_name, recon_name))
+        self.assertEquals(200, rv.status_code)
+        self.assertIn(b'No analyses', rv.data)
+
+        # Try making a new analysis
+        analysis_data, rv = self.create_analysis(dataset_name, sample_name, recon_name)
+        self.assertEquals(302, rv.status_code)
+        analysis_name = analysis_data['folder_name']
+        analysis = APTAnalysisDirectory.load_dataset_by_name(dataset_name, sample_name,
+                                                             recon_name, analysis_name)
+
+        # Check to make sure the directory was made
+        self.assertTrue(os.path.isdir(os.path.join(analysis.path)))
+        for f in ['data.dat', 'data.png']:
+            self.assertTrue(os.path.isfile(os.path.join(analysis.path, f)))
+
+        # Check to make sure the reconstruction page was properly updated
+        rv = self.app.get('/dataset/%s/sample/%s/recon/%s' % (dataset_name, sample_name, recon_name))
+        self.assertEquals(200, rv.status_code)
+        self.assertIn(b'1D_Concentration_Profile', rv.data)
+        self.assertIn(b'Example analysis', rv.data)
+
+        # Make sure the editing page has the old metadata
+        rv = self.app.get('/dataset/%s/sample/%s/recon/%s/analysis/%s/edit' % (dataset_name, sample_name,
+                                                                               recon_name, analysis_name))
+
+        soup = BeautifulSoup(rv.data, 'html.parser')
+        name_field = soup.find('input', {'name': 'title'})
+        self.assertEquals(analysis_data['title'], name_field['value'])
+
+        # Test editing the data
+        analysis_data['title'] = 'new title'
+        analysis_data['metadata-0-key'] = 'New key'
+        analysis_data['files'] = [(BytesIO(b'<junk>'), 'new_data.dat')]
+
+        rv = self.app.post('/dataset/%s/sample/%s/recon/%s/analysis/%s/edit' % (dataset_name, sample_name,
+                                                                               recon_name, analysis_name),
+                          data=analysis_data)
+        self.assertEquals(302, rv.status_code)
+        self.assertTrue(os.path.isfile(os.path.join(analysis.path, 'new_data.dat')))
+        metadata = analysis.load_metadata()
+        self.assertEquals(analysis_data['metadata-0-key'], metadata['metadata'][0]['key'])
 
     def test_publication(self):
         """Test dealing with reconstructions"""
@@ -428,6 +479,21 @@ class TestWebsite(unittest.TestCase):
         name = '%s_Ward_0' % (date.today().strftime("%d%b%y"))
         return data, rv, name
 
+    def create_analysis(self, dataset_name, sample_name, recon_name):
+        """Make a sample analysis directory"""
+
+        data = {
+            'title': 'Example analysis',
+            'description': 'Example analysis data for some reason',
+            'folder_name': '1D_Concentration_Profile',
+            'metadata-0-key': 'Stuff',
+            'metadata-0-value': 'Values',
+            'files': [(BytesIO(b'<data>'), 'data.dat'), (BytesIO(b'<image>'), 'data.png')]
+        }
+        return data, self.app.post(
+            '/dataset/%s/sample/%s/recon/%s/analysis/create' % (dataset_name, sample_name, recon_name),
+            data=data
+        )
 
 if __name__ == '__main__':
     unittest.main()
