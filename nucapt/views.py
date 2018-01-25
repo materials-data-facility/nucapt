@@ -580,7 +580,11 @@ def add_analysis_data(dataset_name, sample_name, recon_name):
 
             # Upload the data
             analysis_name = APTAnalysisDirectory.load_dataset_by_name(dataset_name, sample_name, recon_name, analysis_name)
-            for file in request.files.getlist('files'):
+            files = request.files.getlist('files')
+            if len(files) > 0:
+                flash('Uploaded %d files:'%len(files) + " ".join([os.path.basename(x.filename) for x in files]),
+                      category='success')
+            for file in files:
                 file.save(os.path.join(analysis_name.path, secure_filename(file.filename)))
 
             return redirect("/dataset/%s/sample/%s/recon/%s"%(dataset_name, sample_name, recon_name))
@@ -627,7 +631,11 @@ def edit_analysis_metadata(dataset_name, sample_name, recon_name, analysis_name)
             analysis.update_metadata(form)
 
             # Upload new files
-            for file in request.files.getlist('files'):
+            files = request.files.getlist('files')
+            if len(files) > 0:
+                flash('Uploaded %d files:'%len(files) + " ".join([os.path.basename(x.filename) for x in files]),
+                      category='success')
+            for file in files:
                 file.save(os.path.join(analysis.path, secure_filename(file.filename)))
 
             return redirect("/dataset/%s/sample/%s/recon/%s" % (dataset_name, sample_name, recon_name))
