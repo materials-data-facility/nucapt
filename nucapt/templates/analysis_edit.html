@@ -19,11 +19,9 @@
 
         {{ render_field(form.description) }}
 
-        {{ render_keyvalue_field(form.metadata, "metadata") }}
-
         <h2>Data Files</h2>
         <p>Uploads additional files to this analysis. The current files are not deleted,
-            but they can be overwritten.</p>
+            but they can be overwritten. You can select multiple files with <code>Shift+Click</code>.</p>
 
         {{ render_field(form.files, required=False) }}
 

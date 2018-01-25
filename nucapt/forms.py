@@ -198,7 +198,6 @@ class AnalysisForm(Form):
                                                            'practice to describe the contents of the files you will '
                                                            'be uploading.')
     files = FileField('Files', description='Files associated with this analysis', render_kw={'multiple': None})
-    metadata = FieldList(FormField(KeyValueForm), 'Other Metadata', description='Anything else that is pertinent')
 
     def get_presets(self):
         """Generate a list of pre-defined names and descriptions
@@ -208,9 +207,28 @@ class AnalysisForm(Form):
         :return: OrderedDict, where each item holds the values for the above forms"""
 
         return OrderedDict(conc_profile={
-            'name': 'Concentration Profile',
             'title': 'Concentration Profile',
-            'folder_name': '1D_Concentration_Profile',
-            'description': 'Relative concentration of different elements as a function of distance along sample.',
-            'metadata': {'Measurement Length': '<fill in distance>'}
-        })
+            'folder_name': 'Concentration_Profile',
+            'description': '1D concentration profile (e.g., proxigram)',
+        }, mass_spec={
+            'title': 'Mass Spectrum',
+            'folder_name': 'Mass_Spectrum',
+            'description': 'Spectrum of the mass to charge ratio'
+        }, bulk_comp={
+            'title': 'Bulk Composition',
+            'folder_name': 'Bulk_Composition',
+            'description': 'Bulk composition of the tip of region of interest'
+        }, dist_analysis={
+            'title': 'Distribution Analysis',
+            'folder_name': 'Distribution_Analysis',
+            'description': 'Spatial distribution analysis'
+        }, twod_map={
+            'title': '2D Map',
+            'folder_name': '2D_Map',
+            'description': 'Two dimensional projection of reconstruction'
+        }, threed_map={
+            'title': '3D Map',
+            'folder_name': '3D_Map',
+            'description': 'Three dimensional visualization of reconstruction'
+        }
+        )

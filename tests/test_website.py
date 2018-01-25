@@ -328,7 +328,6 @@ class TestWebsite(unittest.TestCase):
 
         # Test editing the data
         analysis_data['title'] = 'new title'
-        analysis_data['metadata-0-key'] = 'New key'
         analysis_data['files'] = [(BytesIO(b'<junk>'), 'new_data.dat')]
 
         rv = self.app.post('/dataset/%s/sample/%s/recon/%s/analysis/%s/edit' % (dataset_name, sample_name,
@@ -337,7 +336,7 @@ class TestWebsite(unittest.TestCase):
         self.assertEquals(302, rv.status_code)
         self.assertTrue(os.path.isfile(os.path.join(analysis.path, 'new_data.dat')))
         metadata = analysis.load_metadata()
-        self.assertEquals(analysis_data['metadata-0-key'], metadata['metadata'][0]['key'])
+        self.assertEquals(analysis_data['title'], metadata['title'])
 
     def test_publication(self):
         """Test dealing with reconstructions"""
@@ -486,8 +485,6 @@ class TestWebsite(unittest.TestCase):
             'title': 'Example analysis',
             'description': 'Example analysis data for some reason',
             'folder_name': '1D_Concentration_Profile',
-            'metadata-0-key': 'Stuff',
-            'metadata-0-value': 'Values',
             'files': [(BytesIO(b'<data>'), 'data.dat'), (BytesIO(b'<image>'), 'data.png')]
         }
         return data, self.app.post(

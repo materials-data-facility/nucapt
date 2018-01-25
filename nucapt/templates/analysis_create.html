@@ -37,18 +37,7 @@
                 // Set the values of each form field
                 var defaults = options[choice];
                 for (var key in defaults) {
-                    if (key !== "metadata") {
-                        $("#" + key).val(defaults[key]);
-                    } else {
-                        var metadata = defaults["metadata"];
-                        var i = 0;
-                        for (var mkey in metadata) {
-                            $("#metadata_btn-add-row").click(); // Add a row
-                            $("#metadata-" + i + "-key").val(mkey);
-                            $("#metadata-" + i + "-value").val(metadata[mkey]);
-                            i++;
-                        }
-                    }
+                    $("#" + key).val(defaults[key]);
                 }
             }
         })
@@ -66,13 +55,14 @@
 
         {{ render_field(form.description) }}
 
-        {{ render_keyvalue_field(form.metadata, "metadata") }}
-
         <h2>Data Files</h2>
+
+        <p>Define what data to upload and where to store it.</p>
 
         {{ render_field(form.folder_name) }}
 
-        <p>Select all files that should be stored for this analysis.</p>
+        <p>Select all files that should be stored for this analysis.
+            You can select multiple files with <code>Shift+Click</code>.</p>
 
         {{ render_field(form.files) }}
 
