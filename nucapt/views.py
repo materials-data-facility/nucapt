@@ -14,12 +14,21 @@ from nucapt.forms import DatasetForm, APTSampleForm, APTCollectionMethodForm, AP
     AddAPTReconstructionForm, APTSamplePreparationForm, PublicationForm, AnalysisForm
 from nucapt.manager import APTDataDirectory, APTSampleDirectory, APTReconstruction, APTAnalysisDirectory
 from nucapt.decorators import authenticated, check_if_published
-from nucapt.utils import load_portal_client
+from nucapt.utils import load_portal_client, is_group_member
 
 
 @app.route("/")
 def index():
     """Render the home page"""
+    if session.get('is_authenticated'):
+        try:
+            if not is_group_member():
+                flash('You are not in the NUCAPT user group. Go to '
+                      '<a href="https://www.globus.org/app/groups/%s">this page</a> '
+                      'to request access' % app.config.get('GROUP_ID'),
+                      'warning')
+        except KeyError:
+            pass  # For testing w/o connectivity to GlobusAuth
     return render_template('home.html')
 
 
