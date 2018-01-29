@@ -235,17 +235,22 @@ def publish_dataset(dataset_name):
         # Transfer data
         try:
             # '/' of the Globus endpoint for the working data is the working data path
-            data_path = '/%s/'%(os.path.relpath(data.path, app.config('WORKING_PATH')))
+            data_path = '/%s/'%(os.path.relpath(data.path, app.config['WORKING_PATH']))
             toolbox.quick_transfer(mdf_transfer_client, app.config["WORKING_DATA_ENDPOINT"],
-                                   pub_endpoint, [(data_path, pub_path)], timeout=-1)
+                                   pub_endpoint, [(data_path, pub_path)], timeout=0)
         except Exception as e:
             # TODO: Update status - not Published due to failed Transfer
             raise e
-            # Complete submission
+
+        # Send submission in for review
+        try:
+            globus_publish_client.complete_submission(submission_id)
+        except Exception as e:
+            # TODO: Raise exception - not Published due to Publish error
+            raise e
 
         # Mark dataset as complete.
-        landing_url = None
-        data.mark_as_published(submission_id, landing_url)
+        data.mark_as_published(submission_id)
 
         # Redirect to Globus Publish webpage
         return redirect("/dataset/" + dataset_name)
@@ -256,6 +261,7 @@ def publish_dataset(dataset_name):
         form = PublicationForm(**default_values)
 
         return render_template("dataset_publish.html", data=data, form=form, navbar=navbar)
+
 
 @app.route("/datasets")
 @authenticated

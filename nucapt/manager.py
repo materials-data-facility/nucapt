@@ -187,13 +187,12 @@ class APTDataDirectory(DataDirectory):
                 errors.extend(exc.errors)
         return output, errors
 
-    def mark_as_published(self, publication_id, landing_url):
+    def mark_as_published(self, publication_id):
         """Mark this dataset as in the process of submission
 
-        :param publication_id: string, identification information"""
+        :param publication_id: string, identification information for Globus"""
 
         data = {'publication_id': publication_id,
-                'landing_url': landing_url,
                 'submission_date': date.today().strftime("%d%b%y")}
         yaml.dump(data, open(os.path.join(self.path, 'PublicationData.yaml'), 'w'))
 
