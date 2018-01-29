@@ -170,7 +170,7 @@ class PublicationForm(DatasetForm):
         output['dc.publisher'] = 'Materials Data Facility'
         output['dc.date.issued'] = date.today().strftime("%Y-%m-%d")
         output['dc.contributor.author'] = ['%s, %s'%(x['last_name'], x['first_name']) for x in self.data['authors']]
-        output['dc.creator.affiliation'] = [x['affiliation'] for x in self.data['authors']]
+        output['datacite.creator.affiliation'] = [x['affiliation'] for x in self.data['authors']]
 
         # MDF Fields
         output['mdf-base.data_acquisition_method'] = 'Atom probe tomography'
