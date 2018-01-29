@@ -207,7 +207,7 @@ def publish_dataset(dataset_name):
 
         # For debugging, do not submit anything to Publish
         if app.config.get('DEBUG_SKIP_PUB', False):
-            data.mark_as_published('DEBUG', 'DEBUG')
+            data.mark_as_published('DEBUG')
             return redirect('/dataset/' + dataset_name)
 
         # Create the PublicationClient

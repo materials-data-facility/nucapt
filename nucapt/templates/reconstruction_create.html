@@ -21,9 +21,9 @@
 
         <p>Data files holding the reconstruction data</p>
 
-        {{ render_field(form.pos_file) }}
+        {{ render_field(form.pos_file, required=True) }}
 
-        {{ render_field(form.rrng_file) }}
+        {{ render_field(form.rrng_file, required=True) }}
 
         <p><input type="submit" class="btn-lg btn-primary" value="Add Reconstruction"/></p>
 

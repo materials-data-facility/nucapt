@@ -2,12 +2,10 @@ import json
 import os
 
 import yaml
-from jsonschema import Draft4Validator
 
 from nucapt.exceptions import DatasetParseException
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
-schema_path = os.path.join(module_dir, 'schemas')
 
 
 class MetadataHolder:
@@ -16,35 +14,12 @@ class MetadataHolder:
     def __init__(self, **kwargs):
         """Please use `load_from_file` instead"""
         self.metadata = kwargs
-        is_valid, errors = self.validate_data()
-        if not is_valid:
-            raise DatasetParseException(errors)
 
     def __getitem__(self, item):
         return self.metadata[item]
 
     def __setitem__(self, key, value):
         self.metadata[key] = value
-
-    def _get_schema_path(self):
-        """Get path to schemas
-        
-        :return: str, path to schema"""
-        raise NotImplementedError()
-
-    def validate_data(self):
-        """Validate the metadata
-
-        :return:
-            - bool, whether this schema is valid
-            - list, list of errors"""
-
-        with open(self._get_schema_path()) as fp:
-            schema = json.load(fp)
-        validator = Draft4Validator(schema)
-        is_valid = validator.is_valid(self.metadata)
-        errors = [str(e) for e in validator.iter_errors(self.metadata)]
-        return is_valid, errors
 
     @classmethod
     def from_form(cls, form):
@@ -83,37 +58,26 @@ class MetadataHolder:
 
 class APTDataCollectionMetadata(MetadataHolder):
     """Class to store the APT metadata"""
-
-    def _get_schema_path(self):
-        return os.path.join(schema_path, "CollectionMetadata.json")
+    pass
 
 
 class GeneralMetadata(MetadataHolder):
     """Class to hold general metadata about a dataset"""
-
-    def _get_schema_path(self):
-        return os.path.join(schema_path, "GeneralMetadata.json")
+    pass
 
 
 class APTSampleGeneralMetadata(MetadataHolder):
     """Class to hold general metadata about a single APT sample"""
-
-    def _get_schema_path(self):
-        return os.path.join(schema_path, "SampleMetadata.json")
+    pass
 
 
 class APTReconstructionMetadata(MetadataHolder):
     """Class to hold metadata about a reconstruction"""
-
-    def _get_schema_path(self):
-        return os.path.join(schema_path, "ReconstructionMetadata.json")
+    pass
 
 
 class APTSamplePreparationMetadata(MetadataHolder):
     """Class to hold metadata about sample preparation"""
-
-    def _get_schema_path(self):
-        return os.path.join(schema_path, "SamplePreparation.json")
 
     @classmethod
     def from_form(cls, form):
@@ -132,10 +96,6 @@ class APTSamplePreparationMetadata(MetadataHolder):
 
 
 class APTAnalysisMetadata(MetadataHolder):
-
-    def _get_schema_path(self):
-        return os.path.join(schema_path, "AnalysisDirectory.json")
-
     @classmethod
     def from_form(cls, form):
         metadata = form.data
