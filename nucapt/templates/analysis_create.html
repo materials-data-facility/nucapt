@@ -51,7 +51,7 @@
 
         <p>Describe the analysis. What analysis did you perform? Why did you do it? What data are you uploading?</p>
 
-        {{ render_field(form.title) }}
+        {{ render_field(form.title, required=True) }}
 
         {{ render_field(form.description) }}
 

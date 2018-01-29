@@ -13,7 +13,7 @@
     <form class='form-horizontal' method=post enctype="multipart/form-data">
 
         {% from "_leap_sample_forms.html" import recon_form %}
-        {{ render_field(form.name) }}
+        {{ render_field(form.name, required=True) }}
 
         {{ mf.recon_form(form) }}
 

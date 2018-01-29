@@ -89,7 +89,7 @@
 
     <p>Simple description of this reconstruction.</p>
 
-    {{ render_field(form.title) }}
+    {{ render_field(form.title, required=True) }}
 
     {{ render_field(form.description) }}
 
@@ -122,12 +122,8 @@
                 fib_form.hide();
                 if (method === "fib_lift_out") {
                     fib_form.show();
-                    fib_form.find('input').attr('required', '');
-                    ep_form.find('input').removeAttr('required');
                 } else {
                     ep_form.show();
-                    fib_form.find('input').removeAttr('required');
-                    ep_form.find('input').attr('required', '');
                 }
             };
             pickSubForm();
@@ -147,8 +143,14 @@
 
                 // Make a new form row
                 var tr = document.createElement("tr");
+
+                // Add loop counter
+                var td = document.createElement("td");
+                td.innerHTML = numRows + 1;
+                tr.appendChild(td);
+
                 ['solution', 'voltage', 'temperature'].forEach(function (e) {
-                    var td = document.createElement("td");
+                    td = document.createElement("td");
                     var input = document.createElement("input");
                     input.id = '{{ form_prefix }}electropolish-' + numRows + "-" + e;
                     input.name = input.id;
@@ -186,15 +188,17 @@
 
         <table class="table" id="ep_table">
             <tr>
+                <th>Step</th>
                 <th>Solution</th>
                 <th>Voltage (V)</th>
                 <th>Temperature (C)</th>
             </tr>
             {% for step in form.electropolish %}
                 <tr>
-                    <td>{{ step.solution(required="") }}</td>
-                    <td>{{ step.voltage(required="") }}</td>
-                    <td>{{ step.temperature(required="") }}</td>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ step.solution() }}</td>
+                    <td>{{ step.voltage() }}</td>
+                    <td>{{ step.temperature() }}</td>
                 </tr>
             {% endfor %}
         </table>

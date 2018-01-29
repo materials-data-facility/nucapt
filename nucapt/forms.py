@@ -43,14 +43,12 @@ class APTCollectionMethodForm(Form):
                                validators=[NumberRange(min=0, message='Voltage ratio must be positive')],
                                default=1)
     laser_pulse_energy = FloatField('Laser Pulse Energy', description='Laser pulse energy used in evaporation (pJ)',
-                                    validators=[NumberRange(min=0, message='Energy must be positive')],
-                                    default=1)
+                                    validators=[NumberRange(min=0, message='Energy must be positive')])
     laser_frequency = FloatField('Laser Frequency', description='Laser pulse repetition rate (kHz)',
-                                 validators=[NumberRange(min=0, message='Frequency must be positive')],
-                                 default=1)
-    temperature = FloatField('Temperature', description='Temperature (K)', default=1)
-    detection_rate = FloatField('Detection Rate', description='Detection rate (%)', default=1)
-    chamber_pressure = FloatField('Chamber Vacuum Pressure', description='Chamber pressure (torr)', default=1)
+                                 validators=[NumberRange(min=0, message='Frequency must be positive')])
+    temperature = FloatField('Temperature', description='Temperature (K)')
+    detection_rate = FloatField('Detection Rate', description='Detection rate (%)')
+    chamber_pressure = FloatField('Chamber Vacuum Pressure', description='Chamber pressure (torr)')
     misc = FieldList(FormField(KeyValueForm), 'Other Metadata', description='Anything else that is pertinent')
 
 

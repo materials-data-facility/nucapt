@@ -6,7 +6,7 @@
         var getNumRows = function () {
             return $("#author_table").find("tr").length - 1;
         };
-        if (getNumRows() == 1) {
+        if (getNumRows() === 1) {
             $("#btn-del-row").hide(); // Remove this button at first
         }
 
@@ -48,9 +48,9 @@
 
 <form class='form-horizontal' method=post>
     {% from '_form_utils.html' import render_field %}
-    {{ render_field(form.title) }}
+    {{ render_field(form.title, required=True) }}
 
-    {{ render_field(form.abstract) }}
+    {{ render_field(form.abstract)}}
 
     <h4>Authors</h4>
     <table class="table" id="author_table">
@@ -61,9 +61,9 @@
         </tr>
         {% for author in form.authors %}
             <tr>
-                <td>{{ author.first_name() | safe }}</td>
-                <td>{{ author.last_name() | safe }}</td>
-                <td>{{ author.affiliation() | safe }}</td>
+                <td>{{ author.first_name(required="") | safe }}</td>
+                <td>{{ author.last_name(required="") | safe }}</td>
+                <td>{{ author.affiliation(required="") | safe }}</td>
             </tr>
         {% endfor %}
     </table>
