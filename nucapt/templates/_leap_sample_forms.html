@@ -7,7 +7,6 @@
             // Script for selectively showing only part of the form
             var volt_ratio= $('#{{ form_prefix }}voltage_ratio').parent();
             var laser_eng = $('#{{ form_prefix }}laser_pulse_energy').parent();
-            var laser_freq = $('#{{ form_prefix }}laser_pulse_frequency').parent();
             var pickSubForm = function () {
                 var method = $("input[name='{{ form_prefix }}evaporation_mode']:checked").val();
                 volt_ratio.hide();
@@ -57,19 +56,23 @@
             var tip_radius= $('#tip_radius').parent();
             var shank_angle = $('#shank_angle').parent();
             var tip_image = $('#tip_image').parent();
+            var evap_field =  $('#evaporation_field').parent();
+            var init_volt = $('#initial_voltage').parent();
             var pickSubForm = function () {
                 var method = $("input[name='reconstruction_method']:checked").val();
-                [tip_radius, shank_angle, tip_image].forEach(function(x) {
+                [tip_radius, shank_angle, tip_image, evap_field, init_volt].forEach(function(x) {
                     x.hide();
-                    x.find('input').removeAttr('required');
                 });
                 if (method === "shank_angle") {
-                    tip_radius.show(); tip_radius.find('input').attr('required');
-                    shank_angle.show(); shank_angle.find('input').attr('required');
+                    tip_radius.show();
+                    shank_angle.show();
+                    evap_field.show();
                 } else if (method === "voltage_profile") {
-                    tip_radius.show(); tip_radius.find('input').attr('required');
+                    tip_radius.show();
+                    evap_field.show();
+                    init_volt.show();
                 } else {
-                    tip_image.show(); tip_image.find('input').attr('required');
+                    tip_image.show();
                 }
             };
             pickSubForm();
@@ -97,6 +100,10 @@
     {{ render_field(form.tip_radius) }}
 
     {{ render_field(form.shank_angle) }}
+
+    {{ render_field(form.initial_voltage) }}
+
+    {{ render_field(form.evaporation_field) }}
 
     {{ render_field(form.tip_image) }}
 

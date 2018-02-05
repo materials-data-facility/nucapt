@@ -130,6 +130,9 @@ class APTReconstructionForm(Form):
                                                 ('tip_image', 'Tip Image')], default='shank_angle')
     tip_radius = FloatField('Initial Tip Radius', description='Initial tip radius (nm)', render_kw={'min': 0},
                             validators=[Optional()])
+    evaporation_field = FloatField('Evaporation field', description='Evaporation field strength (V/nm)',
+                                   validators=[Optional()])
+    initial_voltage = FloatField('Initial voltage', description='Initial voltage (V)', validators=[Optional()])
     shank_angle = FloatField('Shank Angle', description='Shank angle (degrees)', render_kw={'min': 0},
                              validators=[Optional()])
     tip_image = FileField('Tip Image', description='SEM image of tip')
