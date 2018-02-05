@@ -45,10 +45,12 @@ class APTCollectionMethodForm(Form):
     laser_pulse_energy = FloatField('Laser Pulse Energy', description='Laser pulse energy used in evaporation (pJ)',
                                     validators=[Optional(), NumberRange(min=0, message='Energy must be positive')])
     laser_pulse_frequency = FloatField('Laser Pulse Frequency', description='Laser pulse repetition rate (kHz)',
-                                       validators=[Optional(), NumberRange(min=0, message='Frequency must be positive')])
-    temperature = FloatField('Temperature', description='Temperature (K)')
-    detection_rate = FloatField('Detection Rate', description='Detection rate (%)')
-    chamber_pressure = FloatField('Chamber Vacuum Pressure', description='Chamber pressure (torr)')
+                                       validators=[Optional(),
+                                                   NumberRange(min=0, message='Frequency must be positive')])
+    temperature = FloatField('Temperature', description='Temperature (K)', validators=[Optional()])
+    detection_rate = FloatField('Detection Rate', description='Detection rate (%)', validators=[Optional()])
+    chamber_pressure = FloatField('Chamber Vacuum Pressure', description='Chamber pressure (torr)',
+                                  validators=[Optional()])
     misc = FieldList(FormField(KeyValueForm), 'Other Metadata', description='Anything else that is pertinent')
 
 
@@ -127,9 +129,9 @@ class APTReconstructionForm(Form):
                                        choices=[('shank_angle', 'Shank Angle'), ('voltage_profile', 'Voltage Profile'),
                                                 ('tip_image', 'Tip Image')], default='shank_angle')
     tip_radius = FloatField('Initial Tip Radius', description='Initial tip radius (nm)', render_kw={'min': 0},
-                              validators=[Optional()])
+                            validators=[Optional()])
     shank_angle = FloatField('Shank Angle', description='Shank angle (degrees)', render_kw={'min': 0},
-                               validators=[Optional()])
+                             validators=[Optional()])
     tip_image = FileField('Tip Image', description='SEM image of tip')
     metadata = FieldList(FormField(KeyValueForm), 'Reconstruction Metadata',
                          description='Structured metadata about reconstruction. Use to make indexing easier')
@@ -167,7 +169,7 @@ class PublicationForm(DatasetForm):
         output['dc.title'] = self.data['title']
         output['dc.publisher'] = 'Materials Data Facility'
         output['dc.date.issued'] = date.today().strftime("%Y-%m-%d")
-        output['dc.contributor.author'] = ['%s, %s'%(x['last_name'], x['first_name']) for x in self.data['authors']]
+        output['dc.contributor.author'] = ['%s, %s' % (x['last_name'], x['first_name']) for x in self.data['authors']]
         output['datacite.creator.affiliation'] = [x['affiliation'] for x in self.data['authors']]
 
         # MDF Fields

@@ -14,15 +14,8 @@
                 laser_eng.hide();
                 if (method === "voltage") {
                     volt_ratio.show();
-                    volt_ratio.find('input').attr('required', '');
-                    laser_eng.find('input').removeAttr('required');
-                    laser_freq.find('input').removeAttr('required');
                 } else {
                     laser_eng.show();
-                    laser_eng.find('input').removeAttr('required');
-                    laser_freq.show();
-                    laser_freq.find('input').removeAttr('required');
-                    volt_ratio.find('input').attr('required', '');
                 }
             };
             pickSubForm();
