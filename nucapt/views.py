@@ -582,7 +582,7 @@ def add_analysis_data(dataset_name, sample_name, recon_name):
         recon = APTReconstruction.load_dataset_by_name(dataset_name, sample_name, recon_name)
     except DatasetParseException as exc:
         flash('No such reconstruction!')
-        redirect('/dataset/%s/sample/%s' % (dataset_name, sample_name))
+        return redirect('/dataset/%s/sample/%s' % (dataset_name, sample_name))
 
     # Create the form
     form = AnalysisForm(request.form)
@@ -628,7 +628,7 @@ def edit_analysis_metadata(dataset_name, sample_name, recon_name, analysis_name)
         analysis = APTAnalysisDirectory.load_dataset_by_name(dataset_name, sample_name, recon_name, analysis_name)
     except DatasetParseException as exc:
         flash('No such analysis!')
-        redirect('/dataset/%s/sample/%s/recon/%s' % (dataset_name, sample_name, recon_name))
+        return redirect('/dataset/%s/sample/%s/recon/%s' % (dataset_name, sample_name, recon_name))
 
     # Create the form
     if request.method == 'POST':
@@ -661,3 +661,29 @@ def edit_analysis_metadata(dataset_name, sample_name, recon_name, analysis_name)
     return render_template('analysis_edit.html', form=form, dataset_name=dataset_name, sample_name=sample_name,
                            recon_name=recon_name, analysis_name=analysis_name, errors=errors, navbar=navbar)
 
+
+@app.route("/dataset/<dataset_name>/sample/<sample_name>/recon/<recon_name>/analysis/<analysis_name>")
+@authenticated
+def view_analysis(dataset_name, sample_name, recon_name, analysis_name):
+    navbar = [(dataset_name, '/dataset/%s' % dataset_name),
+              (sample_name, '/dataset/%s/sample/%s' % (dataset_name, sample_name)),
+              (recon_name, '/dataset/%s/sample/%s/recon/%s' % (dataset_name, sample_name, recon_name)),
+              (analysis_name, None)]
+
+    errors = []
+    try:
+        # Upload the data
+        analysis = APTAnalysisDirectory.load_dataset_by_name(dataset_name, sample_name, recon_name, analysis_name)
+    except DatasetParseException as exc:
+        flash('No such analysis!')
+        return redirect('/dataset/%s/sample/%s/recon/%s' % (dataset_name, sample_name, recon_name))
+
+    # Determine whether the dataset has been published
+    is_published = APTDataDirectory.load_dataset_by_name(dataset_name).is_published()
+
+    # Get the metadata
+    analysis_metadata = analysis.load_metadata()
+
+    return render_template('analysis.html', dataset_name=dataset_name, sample_name=sample_name,
+                           recon_name=recon_name, analysis_name=analysis_name, analysis=analysis, errors=errors,
+                           analysis_metadata=analysis_metadata, navbar=navbar, is_published=is_published)

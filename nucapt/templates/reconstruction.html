@@ -38,7 +38,10 @@
             <td>{{ name }}</td>
             <td>{{ metadata['title'] }}</td>
             <td>{{ metadata['creation_date'] }}</td>
-            <td><a href="{{ recon_name }}/analysis/{{ name }}/edit">Edit</a></td>
+            <td>
+                <a href="{{ recon_name }}/analysis/{{ name }}">View</a>
+                <a href="{{ recon_name }}/analysis/{{ name }}/edit">Edit</a>
+            </td>
         </tr>
         {% endfor %}
     </table>

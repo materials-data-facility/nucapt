@@ -13,6 +13,7 @@ import nucapt
 from nucapt.exceptions import DatasetParseException
 from nucapt.metadata import APTDataCollectionMetadata, GeneralMetadata, APTSampleGeneralMetadata, \
     APTReconstructionMetadata, APTSamplePreparationMetadata, APTAnalysisMetadata
+import time
 
 # Key variables
 module_dir = os.path.dirname(os.path.abspath(nucapt.__file__))
@@ -608,3 +609,21 @@ class APTAnalysisDirectory(DataDirectory):
         """Read the metadata for this entry"""
 
         return APTAnalysisMetadata.from_yaml(self._get_metadata_path())
+
+    def get_files(self):
+        """Get information about all of the files
+
+        :return: dict, key is the filename, values are
+            - size: int, size in MB
+            - modified: date modified
+        """
+
+        output = dict()
+        for file in os.listdir(self.path):
+            if file == 'AnalysisMetadata.yaml': continue  # Skip this file
+            path = os.path.join(self.path, file)
+            output[file] = {
+                'size': round(os.path.getsize(path) / 1024 / 1024, 2),
+                'modified': time.strftime('%d %b %Y, %I:%M %p', time.localtime(os.path.getmtime(path)))
+            }
+        return output

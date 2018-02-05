@@ -249,8 +249,7 @@ class TestWebsite(unittest.TestCase):
         sample_name = sample_data['sample_name']
 
         # Make sure reconstruction page renders
-        rv = self.app.get('/dataset/%s/sample/%s/recon/create'%(dataset_name, sample_name))
-
+        rv = self.app.get('/dataset/%s/sample/%s/recon/create' % (dataset_name, sample_name))
         self.assertEquals(200, rv.status_code)
 
         soup = BeautifulSoup(rv.data, 'html.parser')
@@ -325,6 +324,12 @@ class TestWebsite(unittest.TestCase):
         soup = BeautifulSoup(rv.data, 'html.parser')
         name_field = soup.find('input', {'name': 'title'})
         self.assertEquals(analysis_data['title'], name_field['value'])
+
+        # Check that the analysis page works
+        rv = self.app.get('/dataset/%s/sample/%s/recon/%s/analysis/%s' % (dataset_name, sample_name,
+                                                                               recon_name, analysis_name))
+        self.assertEquals(200, rv.status_code)
+        self.assertIn(b'data.dat', rv.data)
 
         # Test editing the data
         analysis_data['title'] = 'new title'

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{{ recon_name }}{% endblock %}
+{% block body %}
+    {% from "_utils.html" import render_errors %}
+    <h1>Analysis <code>{{ analysis_name }}</code></h1>
+
+    {{ render_errors(errors) }}
+
+    <table class="table">
+        <tr><th>Location</th><td>{{ analysis.path }}</td></tr>
+        <tr><th>Title</th><td>{{ analysis_metadata['title'] | safe }}</td></tr>
+        <tr><th>Description</th><td>{{ analysis_metadata['description'] | safe }}</td></tr>
+        <tr><th>Creation Date</th><td>{{ analysis_metadata['creation_date'] }}</td></tr>
+    </table>
+
+    <h2>Files</h2>
+
+    <table class="table">
+    <tr>
+        <th>Filename</th>
+        <th>Edit Date</th>
+        <th>Size (MB)</th>
+    </tr>
+    {% for file,info in analysis.get_files().items() %}
+    <tr>
+        <td>{{ file }}</td>
+        <td>{{ info['modified'] }}</td>
+        <td>{{ info['size'] }}</td>
+    </tr>
+    {% endfor %}
+    </table>
+
+    <h2>Actions</h2>
+
+    <h3><a href="{{ analys_name }}/edit">Edit Metadata or Add Files</a></h3>
+{% endblock %}
