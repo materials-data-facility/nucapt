@@ -64,7 +64,7 @@ class APTFIBLiftoutStepForm(Form):
     """Form for liftout_step"""
 
     capping_material = StringField('Capping Material', description='Capping material', validators=[Optional()])
-    wedge_dimension = FloatField('Wedge Dimension', description='Wedge dimension (m)', validators=[Optional()])
+    wedge_dimension = FloatField('Wedge Dimension', description='Wedge dimension (um)', validators=[Optional()])
     ion_voltage = FloatField('Ion Voltage', description='Ion voltage (kV)', validators=[Optional()])
     ion_current = FloatField('Ion Current', description='Ion current (nA)', validators=[Optional()])
     sample_orientation = StringField('Sample Orientation', description='Sample orientation', validators=[Optional()])
