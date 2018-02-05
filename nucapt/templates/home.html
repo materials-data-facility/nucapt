@@ -8,7 +8,13 @@
     from organizing the output files through keeping track of analysis steps and publish data to the
     <a href="http://materialsdatafacility.org">Materials Data Facility</a></p>
 
+    {% if session.get('is_authenticated', False) %}
     <h3><a href="create">Create New Dataset</a></h3>
 
     <h3><a href="datasets">List Current Datasets</a></h3>
+    {% else %}
+    <p>To access this page, please <a href="login">Log In</a></p>
+
+    <p><a class="btn bg-primary" href="login">Log In!</a></p>
+    {% endif %}
 {% endblock %}

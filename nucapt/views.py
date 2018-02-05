@@ -23,10 +23,7 @@ def index():
     if session.get('is_authenticated'):
         try:
             if not is_group_member():
-                flash('You are not in the NUCAPT user group. Go to '
-                      '<a href="https://www.globus.org/app/groups/%s">this page</a> '
-                      'to request access' % app.config.get('GROUP_ID'),
-                      'warning')
+                return render_template('groups.html')
         except KeyError:
             pass  # For testing w/o connectivity to GlobusAuth
     return render_template('home.html')
