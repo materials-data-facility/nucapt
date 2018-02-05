@@ -44,8 +44,8 @@ class APTCollectionMethodForm(Form):
                                default=1)
     laser_pulse_energy = FloatField('Laser Pulse Energy', description='Laser pulse energy used in evaporation (pJ)',
                                     validators=[Optional(), NumberRange(min=0, message='Energy must be positive')])
-    laser_frequency = FloatField('Laser Frequency', description='Laser pulse repetition rate (kHz)',
-                                 validators=[Optional(), NumberRange(min=0, message='Frequency must be positive')])
+    laser_pulse_frequency = FloatField('Laser Pulse Frequency', description='Laser pulse repetition rate (kHz)',
+                                       validators=[Optional(), NumberRange(min=0, message='Frequency must be positive')])
     temperature = FloatField('Temperature', description='Temperature (K)')
     detection_rate = FloatField('Detection Rate', description='Detection rate (%)')
     chamber_pressure = FloatField('Chamber Vacuum Pressure', description='Chamber pressure (torr)')
