@@ -377,6 +377,7 @@ class APTSampleDirectory(DataDirectory):
 
         :return:
             - list of APTSampleDirectory, reconstructions
+            - list of dict, metadata for each reconstruction
             - list of str, errors"""
 
         # Find all subdirectories that contain "SampleInformation.yaml"

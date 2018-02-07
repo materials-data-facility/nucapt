@@ -240,6 +240,14 @@ class TestWebsite(unittest.TestCase):
         rv = self.app.get('/dataset/%s/sample/Sample3'%dataset_name)
         self.assertEquals(200, rv.status_code)
 
+        # Make sure the form is prepopulated with data from a previous sample
+        rv = self.app.get('/dataset/%s/sample/create'%dataset_name)
+        self.assertEquals(200, rv.status_code)
+
+        soup = BeautifulSoup(rv.data, 'html.parser')
+        field = soup.find('input', {'id': 'preparation_form-electropolish-0-solution'})
+        self.assertEquals('water', field['value'])
+
     def test_reconstructions(self):
         """Test dealing with reconstructions"""
 
@@ -283,6 +291,25 @@ class TestWebsite(unittest.TestCase):
 
         self.assertEquals(200, rv.status_code)
         self.assertIn(b'Recon1', rv.data)
+
+        # See if the form pre-populates
+        rv = self.app.get('/dataset/%s/sample/%s/recon/create'%(dataset_name, sample_name))
+        self.assertEquals(200, rv.status_code)
+
+        soup = BeautifulSoup(rv.data, 'html.parser')
+        field = soup.find('textarea', {'name': 'description'})
+        self.assertEquals('Example reconstruction', field.contents[0])
+
+        # Now, create a new sample and see if the reconstruction files it
+        self.create_sample(dataset_name, 'Sample2')
+
+        rv = self.app.get('/dataset/%s/sample/%s/recon/create' % (dataset_name, 'Sample2'))
+        self.assertEquals(200, rv.status_code)
+
+        soup = BeautifulSoup(rv.data, 'html.parser')
+        field = soup.find('textarea', {'name': 'description'})
+        self.assertEquals('Example reconstruction', field.contents[0])
+
 
     def test_add_analysis(self):
         """Test dealing with adding analysis data"""
@@ -336,8 +363,8 @@ class TestWebsite(unittest.TestCase):
         analysis_data['files'] = [(BytesIO(b'<junk>'), 'new_data.dat')]
 
         rv = self.app.post('/dataset/%s/sample/%s/recon/%s/analysis/%s/edit' % (dataset_name, sample_name,
-                                                                               recon_name, analysis_name),
-                          data=analysis_data)
+                                                                                recon_name, analysis_name),
+                           data=analysis_data)
         self.assertEquals(302, rv.status_code)
         self.assertTrue(os.path.isfile(os.path.join(analysis.path, 'new_data.dat')))
         metadata = analysis.load_metadata()

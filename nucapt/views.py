@@ -131,7 +131,7 @@ def create():
     form = DatasetForm(request.form)
     if request.method == 'POST' and form.validate():
         dataset = APTDataDirectory.initialize_dataset(form)
-        return redirect('/dataset/%s'%dataset.name)
+        return redirect('/dataset/%s' % dataset.name)
     return render_template('dataset_create.html', title=title, description=description, form=form,
                            navbar=[('Create Dataset', '#')])
 
@@ -157,7 +157,8 @@ def edit_dataset(dataset_name):
             dataset.update_metadata(form)
             return redirect('/dataset/' + dataset_name)
         else:
-            return render_template('dataset_create.html', title=title, description=description, form=form, navbar=navbar)
+            return render_template('dataset_create.html', title=title, description=description, form=form,
+                                   navbar=navbar)
     else:
         form = DatasetForm(**dataset.get_metadata().metadata)
         return render_template('dataset_create.html', title=title, description=description, form=form, navbar=navbar)
@@ -173,7 +174,8 @@ def display_dataset(dataset_name):
     except DatasetParseException as exc:
         dataset = None
         errors = exc.errors
-        return render_template('dataset.html', name=dataset_name, dataset=dataset, errors=errors, navbar=[(dataset_name, '/dataset/%s' % dataset_name)])
+        return render_template('dataset.html', name=dataset_name, dataset=dataset, errors=errors,
+                               navbar=[(dataset_name, '/dataset/%s' % dataset_name)])
     samples, sample_errors = dataset.list_samples()
     errors.extend(sample_errors)
     metadata = dataset.get_metadata()
@@ -209,9 +211,9 @@ def publish_dataset(dataset_name):
 
         # Create the PublicationClient
         globus_publish_client = DataPublicationClient(authorizer=
-                                                      RefreshTokenAuthorizer(
-                                                          session["tokens"]["publish.api.globus.org"]
-                                                          ["refresh_token"], load_portal_client()))
+        RefreshTokenAuthorizer(
+            session["tokens"]["publish.api.globus.org"]
+            ["refresh_token"], load_portal_client()))
 
         # Create the transfer client
         mdf_transfer_client = TransferClient(authorizer=
@@ -232,7 +234,7 @@ def publish_dataset(dataset_name):
         # Transfer data
         try:
             # '/' of the Globus endpoint for the working data is the working data path
-            data_path = '/%s/'%(os.path.relpath(data.path, app.config['WORKING_PATH']))
+            data_path = '/%s/' % (os.path.relpath(data.path, app.config['WORKING_PATH']))
             toolbox.quick_transfer(mdf_transfer_client, app.config["WORKING_DATA_ENDPOINT"],
                                    pub_endpoint, [(data_path, pub_path)], timeout=0)
         except Exception as e:
@@ -266,7 +268,7 @@ def list_datasets():
     """List all datasets currently stored at default data path"""
 
     dir_info = APTDataDirectory.get_all_datasets(app.config['WORKING_PATH'])
-    dir_valid = dict([(dir, isinstance(info,APTDataDirectory)) for dir,info in dir_info.items()])
+    dir_valid = dict([(dir, isinstance(info, APTDataDirectory)) for dir, info in dir_info.items()])
     return render_template("dataset_list.html", dir_info=dir_info, dir_valid=dir_valid,
                            navbar=[('List Datasets', '#')])
 
@@ -286,9 +288,26 @@ def create_sample(dataset_name):
         return redirect('/dataset/' + dataset_name)
 
     # Initialize form data
-    form = APTSampleForm(request.form) \
-        if request.method == 'POST' \
-        else APTSampleForm(sample_name='Sample%d'%(len(dataset.list_samples()[0])+1))
+    if request.method == 'POST':
+        form = APTSampleForm(request.form)
+    else:
+        samples, errors = dataset.list_samples()
+
+        # Make a new name
+        new_metadata = {'sample_name': 'Sample%d' % (len(samples) + 1)}
+
+        if len(samples) > 0:
+            # Copy data from another sample
+            last_sample = sorted(samples, key=lambda x: x.name)[-1]
+
+            # Loop over each subfield
+            for n, m in zip(['sample_form', 'collection_form', 'preparation_form'],
+                            [last_sample.load_sample_information(), last_sample.load_collection_metadata(),
+                             last_sample.load_preparation_metadata()]):
+                new_metadata[n] = m.metadata
+
+        # Initialize the form
+        form = APTSampleForm(**new_metadata)
 
     if request.method == 'POST' and form.validate():
         # attempt to validate the metadata
@@ -324,13 +343,14 @@ def create_sample(dataset_name):
 def view_sample(dataset_name, sample_name):
     """View metadata about sample"""
 
-    navbar = [(dataset_name, '/dataset/%s'%dataset_name), (sample_name, '#')]
+    navbar = [(dataset_name, '/dataset/%s' % dataset_name), (sample_name, '#')]
 
     # Load in the sample by name
     try:
         sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
     except DatasetParseException as exc:
-        return render_template('sample.html', dataset_name=dataset_name, sample=sample, errors=exc.errors, navbar=navbar)
+        return render_template('sample.html', dataset_name=dataset_name, sample=sample, errors=exc.errors,
+                               navbar=navbar)
 
     # Load in the dataset
     is_published = APTDataDirectory.load_dataset_by_name(dataset_name).is_published()
@@ -365,7 +385,7 @@ def edit_sample_information(dataset_name, sample_name):
     try:
         sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
     except DatasetParseException as exc:
-        return redirect("/dataset/%s/sample/%s"%(dataset_name, sample_name))
+        return redirect("/dataset/%s/sample/%s" % (dataset_name, sample_name))
 
     # Load in the metadata
     edit_page = 'sample_generalform.html'
@@ -386,7 +406,7 @@ def edit_collection_information(dataset_name, sample_name):
     try:
         sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
     except DatasetParseException as exc:
-        return redirect("/dataset/%s/sample/%s"%(dataset_name, sample_name))
+        return redirect("/dataset/%s/sample/%s" % (dataset_name, sample_name))
 
     # Load in the metadata
     edit_page = 'sample_collectionform.html'
@@ -407,7 +427,7 @@ def edit_sample_preparation(dataset_name, sample_name):
     try:
         sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
     except DatasetParseException as exc:
-        return redirect("/dataset/%s/sample/%s"%(dataset_name, sample_name))
+        return redirect("/dataset/%s/sample/%s" % (dataset_name, sample_name))
 
     # Load in the metadata
     edit_page = 'sample_prepform.html'
@@ -478,12 +498,34 @@ def create_reconstruction(dataset_name, sample_name):
     try:
         sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
     except DatasetParseException as exc:
-        return redirect("/dataset/%s/sample/%s"%(dataset_name, sample_name))
+        return redirect("/dataset/%s/sample/%s" % (dataset_name, sample_name))
 
     # Create the form
-    form = AddAPTReconstructionForm(request.form) \
-            if request.method == 'POST' \
-            else AddAPTReconstructionForm(name='Reconstruction%d'%(len(sample.list_reconstructions()[0]) + 1))
+    if request.method == 'POST':
+        form = AddAPTReconstructionForm(request.form)
+    else:
+        # Load the existing reconstructions
+        recons, _, _ = sample.list_reconstructions()
+
+        # Populate the metadata
+        new_metadata = dict(name='Reconstruction%d'%(len(recons) + 1))
+
+        if len(recons) == 0:
+            # Try to find another sample
+            samples, _ = APTDataDirectory.load_dataset_by_name(dataset_name).list_samples()
+            for sample in sorted(samples, key=lambda x: x.name)[::-1]:
+                my_recons, _, _ = sample.list_reconstructions()
+                if len(my_recons) > 0:
+                    recons = my_recons
+                    break
+
+        # If you can find a reconstruction, prepopulate the form
+        if len(recons) > 0:
+            old_metadata = sorted(recons, key=lambda x: x.name)[-1].load_metadata()
+            new_metadata.update(old_metadata.metadata)
+
+        # Create the form
+        form = AddAPTReconstructionForm(**new_metadata)
 
     # Make sure it validates
     if request.method == 'POST' and form.validate():
@@ -521,7 +563,7 @@ def create_reconstruction(dataset_name, sample_name):
         rrng_file.save(os.path.join(recon.path, secure_filename(rrng_file.filename)))
         if 'tip_image' in request.files:
             tip_image = request.files['tip_image']
-            tip_image.save(os.path.join(recon.path, 'tip_image.%s'%(tip_image.filename.split(".")[-1])))
+            tip_image.save(os.path.join(recon.path, 'tip_image.%s' % (tip_image.filename.split(".")[-1])))
 
         return redirect("/dataset/%s/sample/%s/recon/%s" % (dataset_name, sample_name, recon_name))
 
@@ -591,15 +633,16 @@ def add_analysis_data(dataset_name, sample_name, recon_name):
             analysis_name = APTAnalysisDirectory.create_analysis_directory(form, dataset_name, sample_name, recon_name)
 
             # Upload the data
-            analysis_name = APTAnalysisDirectory.load_dataset_by_name(dataset_name, sample_name, recon_name, analysis_name)
+            analysis_name = APTAnalysisDirectory.load_dataset_by_name(dataset_name, sample_name, recon_name,
+                                                                      analysis_name)
             files = request.files.getlist('files')
             if len(files) > 0:
-                flash('Uploaded %d files:'%len(files) + " ".join([os.path.basename(x.filename) for x in files]),
+                flash('Uploaded %d files:' % len(files) + " ".join([os.path.basename(x.filename) for x in files]),
                       category='success')
             for file in files:
                 file.save(os.path.join(analysis_name.path, secure_filename(file.filename)))
 
-            return redirect("/dataset/%s/sample/%s/recon/%s"%(dataset_name, sample_name, recon_name))
+            return redirect("/dataset/%s/sample/%s/recon/%s" % (dataset_name, sample_name, recon_name))
 
         except DatasetParseException as err:
             errors.append(err.errors)
@@ -645,7 +688,7 @@ def edit_analysis_metadata(dataset_name, sample_name, recon_name, analysis_name)
             # Upload new files
             files = request.files.getlist('files')
             if len(files) > 0:
-                flash('Uploaded %d files:'%len(files) + " ".join([os.path.basename(x.filename) for x in files]),
+                flash('Uploaded %d files:' % len(files) + " ".join([os.path.basename(x.filename) for x in files]),
                       category='success')
             for file in files:
                 file.save(os.path.join(analysis.path, secure_filename(file.filename)))

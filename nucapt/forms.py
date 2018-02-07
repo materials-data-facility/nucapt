@@ -114,7 +114,7 @@ class APTSampleForm(Form):
                                              title='Only word characters allowed: A-Z, a-z, 0-9, and _'),
                               validators=[Regexp('\\w+', message='File name can only contain word '
                                                                  'characters: A-Z, a-z, 0-9, and _')])
-    sample_form = FormField(APTSampleDescriptionForm, description="Metadata for the ")
+    sample_form = FormField(APTSampleDescriptionForm, description="Metadata that describes the sample")
     collection_form = FormField(APTCollectionMethodForm, description="Metadata for data collection method")
     preparation_form = FormField(APTSamplePreparationForm, description="Metadata for sample preparation")
     rhit_file = FileField('RHIT file', validators=[Optional()])
