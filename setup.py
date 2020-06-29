@@ -12,7 +12,7 @@ setup(
         'six==1.10.0',
         'beautifulsoup4==4.6.0',
         'globus_sdk[jwt]==1.2.2',
-        'mdf_toolbox==0.1.2',
+        'mdf_connect_client==0.3.7',
         'pyopenssl==17.5.0',
         'globus_nexus_client==0.2.6',
         'flask_sslify==0.1.5'

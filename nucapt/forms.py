@@ -1,6 +1,7 @@
 from datetime import date
 from collections import OrderedDict
 
+from mdf_connect_client import MDFConnectClient
 from wtforms import Form, StringField, TextAreaField, FieldList, FormField, RadioField, FloatField, BooleanField
 from wtforms.fields.simple import FileField
 from wtforms.fields.html5 import EmailField
@@ -158,31 +159,20 @@ class PublicationForm(DatasetForm):
     contact_person = StringField('Contact Person', description='Main point of contact')
     contact_email = EmailField('Contact Email', description='Point of contact email')
 
-    def convert_to_globus_publication(self):
+    def convert_to_globus_publication(self, mdf_connect: MDFConnectClient):
         """Return the contents of the form in a way that is comptabile with Globus Publish's API.
 
         :return: dict, metadata in Publish-friendly format"""
 
-        output = dict()
-
-        # Required fields
-        output['accept_license'] = self.data['accept_license']
-
-        # DataCite fields
-        output['dc.title'] = self.data['title']
-        output['dc.publisher'] = 'Materials Data Facility'
-        output['dc.date.issued'] = date.today().strftime("%Y-%m-%d")
-        output['dc.contributor.author'] = ['%s, %s' % (x['last_name'], x['first_name']) for x in self.data['authors']]
-        output['datacite.creator.affiliation'] = [x['affiliation'] for x in self.data['authors']]
-
-        # MDF Fields
-        output['mdf-base.data_acquisition_method'] = 'Atom probe tomography'
-        output['mdf-base.primary_product'] = 'Data files'
-        output['mdf-base.description'] = self.data['abstract']
-        output['mdf-base.data_acquisition_location'] = 'NUCAPT'
-
-        # TODO: Add MRR-related fields to data file
-        return output
+        mdf_connect.create_dc_block(
+            title=self.data['title'],
+            authors=['%s, %s' % (x['last_name'], x['first_name']) for x in self.data['authors']],
+            affiliations=[x['affiliation'] for x in self.data['authors']],
+            publisher='NUCAPT',
+            publication_year=date.today().strftime("%Y"),
+            description=self.data['abstract'],
+        )
+        mdf_connect.create_mrr_block({'characterizationMethod': ['Atom probe tomography']})
 
 
 class AnalysisForm(Form):

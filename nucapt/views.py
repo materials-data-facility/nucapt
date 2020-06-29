@@ -1,12 +1,13 @@
 import os
 import shutil
 
+import globus_sdk
+import mdf_connect_client
+import mdf_toolbox.toolbox
 from flask import render_template, request, redirect, url_for, flash, session
 from globus_sdk.authorizers.refresh_token import RefreshTokenAuthorizer
 from globus_sdk.transfer.client import TransferClient
-from mdf_toolbox.toolbox import DataPublicationClient
 from werkzeug.utils import secure_filename
-from mdf_toolbox import toolbox
 
 from nucapt import app
 from nucapt.exceptions import DatasetParseException
@@ -15,7 +16,8 @@ from nucapt.forms import DatasetForm, APTSampleForm, APTCollectionMethodForm, AP
 from nucapt.manager import APTDataDirectory, APTSampleDirectory, APTReconstruction, APTAnalysisDirectory
 from nucapt.decorators import authenticated, check_if_published
 from nucapt.utils import load_portal_client, is_group_member
-
+from mdf_connect_client import MDFConnectClient
+from urllib.parse import quote
 
 @app.route("/")
 def index():
@@ -33,7 +35,7 @@ def index():
 @app.route('/login', methods=['GET'])
 def login():
     """Send the user to Globus Auth."""
-    return redirect(url_for('authcallback'))
+    return redirect('https://6280b11be6fb.ngrok.io/authcallback')
 
 
 @app.route('/authcallback', methods=['GET'])
@@ -47,7 +49,7 @@ def authcallback():
         return redirect(url_for('home'))
 
     # Set up our Globus Auth/OAuth2 state
-    redirect_uri = url_for('authcallback', _external=True)
+    redirect_uri = url_for('authcallback', _external=True, _scheme="https")
 
     client = load_portal_client()
     client.oauth2_start_flow(redirect_uri,
@@ -210,10 +212,13 @@ def publish_dataset(dataset_name):
             return redirect('/dataset/' + dataset_name)
 
         # Create the PublicationClient
-        globus_publish_client = DataPublicationClient(authorizer=
-        RefreshTokenAuthorizer(
-            session["tokens"]["publish.api.globus.org"]
-            ["refresh_token"], load_portal_client()))
+        auth_client = globus_sdk.ConfidentialAppAuthClient(
+                       app.config['PORTAL_CLIENT_ID'], app.config['PORTAL_CLIENT_SECRET'])
+        mdf_authorizer = globus_sdk.RefreshTokenAuthorizer(
+                                        session["tokens"]["mdf_dataset_submission"]
+                                               ["refresh_token"],
+                                        auth_client)
+        mdf_client = mdf_connect_client.MDFConnectClient(authorizer=mdf_authorizer)
 
         # Create the transfer client
         mdf_transfer_client = TransferClient(authorizer=
@@ -222,34 +227,42 @@ def publish_dataset(dataset_name):
 
         # Create the publication entry
         try:
-            md_result = globus_publish_client.push_metadata(app.config.get("PUBLISH_COLLECTION"),
-                                                            form.convert_to_globus_publication())
-            pub_endpoint = md_result['globus.shared_endpoint.name']
-            pub_path = os.path.join(md_result['globus.shared_endpoint.path'], "data") + "/"
-            submission_id = md_result["id"]
+            form.convert_to_globus_publication(mdf_client)
+            mdf_client.set_source_name = dataset_name+"22"
+            mdf_client.update = False
+            pub_path = "globus://"+app.config['WORKING_DATA_ENDPOINT']+quote(data.path)
+            mdf_client.add_data_source(pub_path)
+            print(mdf_client.get_submission())
+
+            result = mdf_client.submit_dataset(update=False)
+            print(result)
+            # md_result = globus_publish_client.push_metadata(app.config.get("PUBLISH_COLLECTION"),
+            #                                                 form.convert_to_globus_publication())
+            # pub_endpoint = md_result['globus.shared_endpoint.name']
+            # submission_id = md_result["id"]
         except Exception as e:
             # TODO: Update status - not Published due to bad metadata
             raise e
 
         # Transfer data
-        try:
+        # try:
             # '/' of the Globus endpoint for the working data is the working data path
-            data_path = '/%s/' % (os.path.relpath(data.path, app.config['WORKING_PATH']))
-            toolbox.quick_transfer(mdf_transfer_client, app.config["WORKING_DATA_ENDPOINT"],
-                                   pub_endpoint, [(data_path, pub_path)], timeout=0)
-        except Exception as e:
-            # TODO: Update status - not Published due to failed Transfer
-            raise e
+            # data_path = '/%s/' % (os.path.relpath(data.path, app.config['WORKING_PATH']))
+            # toolbox.quick_transfer(mdf_transfer_client, app.config["WORKING_DATA_ENDPOINT"],
+            #                        pub_endpoint, [(data_path, pub_path)], timeout=0)
+        # except Exception as e:
+        #     # TODO: Update status - not Published due to failed Transfer
+        #     raise e
 
         # Send submission in for review
-        try:
-            globus_publish_client.complete_submission(submission_id)
-        except Exception as e:
-            # TODO: Raise exception - not Published due to Publish error
-            raise e
-
-        # Mark dataset as complete.
-        data.mark_as_published(submission_id)
+        # try:
+        #     globus_publish_client.complete_submission(submission_id)
+        # except Exception as e:
+        #     # TODO: Raise exception - not Published due to Publish error
+        #     raise e
+        #
+        # # Mark dataset as complete.
+        # data.mark_as_published(submission_id)
 
         # Redirect to Globus Publish webpage
         return redirect("/dataset/" + dataset_name)
