@@ -1,0 +1,18 @@
+# Whether to use Flask's debug console
+DEBUG = True
+
+# Globus Auth-related settings
+DEBUG_SKIP_AUTH = True
+PORTAL_CLIENT_SECRET = '<<Obtain this from Globus App Dashboard>>'
+PORTAL_CLIENT_ID = '<<Obtain this from Globus App Dashboard>>'
+GLOBUS_AUTH_LOGOUT_URI = 'https://auth.globus.org/v2/web/logout'
+
+GROUP_ID = '7ac7bef4-ba8e-11e7-9f15-22000b93c8ac'
+AUTH_CALLBACK_URL = '<<Full URL for /authcallback endpoint>>'
+
+# Globus Publication Settings
+DEBUG_SKIP_PUB = False
+WORKING_DATA_ENDPOINT = '<<Globus Endpoint ID>>'
+
+# General configuration
+WORKING_PATH = '/working-data'

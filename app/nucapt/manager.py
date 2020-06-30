@@ -8,6 +8,7 @@ from glob import glob
 
 import six
 import yaml
+from nucapt import app
 
 import nucapt
 from nucapt.exceptions import DatasetParseException
@@ -18,7 +19,7 @@ import time
 # Key variables
 module_dir = os.path.dirname(os.path.abspath(nucapt.__file__))
 template_path = os.path.join(module_dir, '..', 'template_directory')
-data_path = nucapt.app.config['WORKING_PATH']
+data_path = app.config['WORKING_PATH']
 
 
 @six.add_metaclass(ABCMeta)

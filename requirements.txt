@@ -1,0 +1,8 @@
+wtforms==2.1
+pyyaml==5.3.1
+six==1.15.0
+beautifulsoup4==4.6.0
+globus_sdk[jwt]==1.9.0
+mdf_connect_client==0.3.7
+jsonschema==3.2.0
+globus_nexus_client==0.2.9

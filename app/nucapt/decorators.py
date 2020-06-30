@@ -6,7 +6,7 @@ from flask.helpers import flash
 from flask.templating import render_template
 
 from nucapt.exceptions import DatasetParseException
-from nucapt.manager import APTDataDirectory
+import nucapt.manager
 from nucapt.utils import is_group_member
 
 
@@ -40,7 +40,7 @@ def check_if_published(fn):
         # Handle failures
         dataset_name = kwargs['dataset_name']
         try:
-            data = APTDataDirectory.load_dataset_by_name(dataset_name)
+            data = nucapt.manager.APTDataDirectory.load_dataset_by_name(dataset_name)
         except DatasetParseException as exc:
             return redirect("/dataset/%s" % dataset_name)
 

@@ -3,20 +3,19 @@ import shutil
 
 import globus_sdk
 import mdf_connect_client
-import mdf_toolbox.toolbox
 from flask import render_template, request, redirect, url_for, flash, session
 from globus_sdk.authorizers.refresh_token import RefreshTokenAuthorizer
 from globus_sdk.transfer.client import TransferClient
 from werkzeug.utils import secure_filename
 
-from nucapt import app
+import nucapt.main
 from nucapt.exceptions import DatasetParseException
 from nucapt.forms import DatasetForm, APTSampleForm, APTCollectionMethodForm, APTSampleDescriptionForm, \
     AddAPTReconstructionForm, APTSamplePreparationForm, PublicationForm, AnalysisForm
-from nucapt.manager import APTDataDirectory, APTSampleDirectory, APTReconstruction, APTAnalysisDirectory
+from nucapt import app
+import nucapt.manager
 from nucapt.decorators import authenticated, check_if_published
 from nucapt.utils import load_portal_client, is_group_member
-from mdf_connect_client import MDFConnectClient
 from urllib.parse import quote
 
 @app.route("/")
@@ -35,7 +34,7 @@ def index():
 @app.route('/login', methods=['GET'])
 def login():
     """Send the user to Globus Auth."""
-    return redirect('https://6280b11be6fb.ngrok.io/authcallback')
+    return redirect(nucapt.main.app.config['AUTH_CALLBACK_URL'])
 
 
 @app.route('/authcallback', methods=['GET'])
@@ -49,7 +48,7 @@ def authcallback():
         return redirect(url_for('home'))
 
     # Set up our Globus Auth/OAuth2 state
-    redirect_uri = url_for('authcallback', _external=True, _scheme="https")
+    redirect_uri = nucapt.main.app.config['AUTH_CALLBACK_URL']
 
     client = load_portal_client()
     client.oauth2_start_flow(redirect_uri,
@@ -132,7 +131,7 @@ def create():
 
     form = DatasetForm(request.form)
     if request.method == 'POST' and form.validate():
-        dataset = APTDataDirectory.initialize_dataset(form)
+        dataset = nucapt.manager.APTDataDirectory.initialize_dataset(form)
         return redirect('/dataset/%s' % dataset.name)
     return render_template('dataset_create.html', title=title, description=description, form=form,
                            navbar=[('Create Dataset', '#')])
@@ -149,8 +148,9 @@ def edit_dataset(dataset_name):
     navbar = [(dataset_name, '/dataset/%s' % dataset_name), ('Edit', '#')]
 
     try:
-        dataset = APTDataDirectory.load_dataset_by_name(dataset_name)
-    except (ValueError, AttributeError, DatasetParseException):
+        dataset = nucapt.manager.APTDataDirectory.load_dataset_by_name(dataset_name)
+    except (ValueError, AttributeError, DatasetParseException) as eek:
+        print(eek)
         return redirect("/dataset/" + dataset_name)
 
     if request.method == 'POST':
@@ -172,7 +172,7 @@ def display_dataset(dataset_name):
     """Display metadata about a certain dataset"""
     errors = []
     try:
-        dataset = APTDataDirectory.load_dataset_by_name(dataset_name)
+        dataset = nucapt.manager.APTDataDirectory.load_dataset_by_name(dataset_name)
     except DatasetParseException as exc:
         dataset = None
         errors = exc.errors
@@ -195,7 +195,7 @@ def publish_dataset(dataset_name):
 
     # Check that this is a good dataset
     try:
-        data = APTDataDirectory.load_dataset_by_name(dataset_name)
+        data = nucapt.manager.APTDataDirectory.load_dataset_by_name(dataset_name)
     except (ValueError, AttributeError, DatasetParseException):
         return redirect("/dataset/" + dataset_name)
 
@@ -280,8 +280,8 @@ def publish_dataset(dataset_name):
 def list_datasets():
     """List all datasets currently stored at default data path"""
 
-    dir_info = APTDataDirectory.get_all_datasets(app.config['WORKING_PATH'])
-    dir_valid = dict([(dir, isinstance(info, APTDataDirectory)) for dir, info in dir_info.items()])
+    dir_info = nucapt.manager.APTDataDirectory.get_all_datasets(app.config['WORKING_PATH'])
+    dir_valid = dict([(dir, isinstance(info, nucapt.manager.APTDataDirectory)) for dir, info in dir_info.items()])
     return render_template("dataset_list.html", dir_info=dir_info, dir_valid=dir_valid,
                            navbar=[('List Datasets', '#')])
 
@@ -296,7 +296,7 @@ def create_sample(dataset_name):
 
     # Load in the dataset
     try:
-        dataset = APTDataDirectory.load_dataset_by_name(dataset_name)
+        dataset = nucapt.manager.APTDataDirectory.load_dataset_by_name(dataset_name)
     except DatasetParseException as exc:
         return redirect('/dataset/' + dataset_name)
 
@@ -325,12 +325,12 @@ def create_sample(dataset_name):
     if request.method == 'POST' and form.validate():
         # attempt to validate the metadata
         try:
-            sample_name = APTSampleDirectory.create_sample(dataset_name, form)
+            sample_name = nucapt.manager.APTSampleDirectory.create_sample(dataset_name, form)
         except DatasetParseException as err:
             return render_template('sample_create.html', form=form, name=dataset_name, errors=err.errors, navbar=navbar)
 
         # Crate the sample
-        sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
+        sample = nucapt.manager.APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
 
         # If present, upload file
         rhit_file = request.files.get('rhit_file', None)
@@ -360,13 +360,13 @@ def view_sample(dataset_name, sample_name):
 
     # Load in the sample by name
     try:
-        sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
+        sample = nucapt.manager.APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
     except DatasetParseException as exc:
         return render_template('sample.html', dataset_name=dataset_name, sample=sample, errors=exc.errors,
                                navbar=navbar)
 
     # Load in the dataset
-    is_published = APTDataDirectory.load_dataset_by_name(dataset_name).is_published()
+    is_published = nucapt.manager.APTDataDirectory.load_dataset_by_name(dataset_name).is_published()
 
     # Load in the sample information
     sample_metadata = None
@@ -396,7 +396,7 @@ def edit_sample_information(dataset_name, sample_name):
 
     # Load in the sample by name
     try:
-        sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
+        sample = nucapt.manager.APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
     except DatasetParseException as exc:
         return redirect("/dataset/%s/sample/%s" % (dataset_name, sample_name))
 
@@ -417,7 +417,7 @@ def edit_collection_information(dataset_name, sample_name):
 
     # Load in the sample by name
     try:
-        sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
+        sample = nucapt.manager.APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
     except DatasetParseException as exc:
         return redirect("/dataset/%s/sample/%s" % (dataset_name, sample_name))
 
@@ -438,7 +438,7 @@ def edit_sample_preparation(dataset_name, sample_name):
 
     # Load in the sample by name
     try:
-        sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
+        sample = nucapt.manager.APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
     except DatasetParseException as exc:
         return redirect("/dataset/%s/sample/%s" % (dataset_name, sample_name))
 
@@ -509,7 +509,7 @@ def create_reconstruction(dataset_name, sample_name):
 
     # Make sure this sample exists
     try:
-        sample = APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
+        sample = nucapt.manager.APTSampleDirectory.load_dataset_by_name(dataset_name, sample_name)
     except DatasetParseException as exc:
         return redirect("/dataset/%s/sample/%s" % (dataset_name, sample_name))
 
@@ -525,7 +525,7 @@ def create_reconstruction(dataset_name, sample_name):
 
         if len(recons) == 0:
             # Try to find another sample
-            samples, _ = APTDataDirectory.load_dataset_by_name(dataset_name).list_samples()
+            samples, _ = nucapt.manager.APTDataDirectory.load_dataset_by_name(dataset_name).list_samples()
             for sample in sorted(samples, key=lambda x: x.name)[::-1]:
                 my_recons, _, _ = sample.list_reconstructions()
                 if len(my_recons) > 0:
@@ -565,13 +565,13 @@ def create_reconstruction(dataset_name, sample_name):
                 raise DatasetParseException(errors)
 
             # check the metadata
-            recon_name = APTReconstruction.create_reconstruction(form, dataset_name, sample_name, tip_image_path)
+            recon_name = nucapt.manager.APTReconstruction.create_reconstruction(form, dataset_name, sample_name, tip_image_path)
         except DatasetParseException as err:
             return render_template('reconstruction_create.html', form=form, dataset_name=dataset_name,
                                    sample_name=sample_name, errors=errors + err.errors, navbar=navbar)
 
         # If valid, upload the data
-        recon = APTReconstruction.load_dataset_by_name(dataset_name, sample_name, recon_name)
+        recon = nucapt.manager.APTReconstruction.load_dataset_by_name(dataset_name, sample_name, recon_name)
         pos_file.save(os.path.join(recon.path, secure_filename(pos_file.filename)))
         rrng_file.save(os.path.join(recon.path, secure_filename(rrng_file.filename)))
         if 'tip_image' in request.files:
@@ -594,13 +594,13 @@ def view_reconstruction(dataset_name, sample_name, recon_name):
     errors = []
     try:
         # Load in the recon
-        recon = APTReconstruction.load_dataset_by_name(dataset_name, sample_name, recon_name)
+        recon = nucapt.manager.APTReconstruction.load_dataset_by_name(dataset_name, sample_name, recon_name)
         recon_metadata = recon.load_metadata()
     except DatasetParseException as exc:
         errors = exc.errors
 
     # Determine whether the dataset has been published
-    is_published = APTDataDirectory.load_dataset_by_name(dataset_name).is_published()
+    is_published = nucapt.manager.APTDataDirectory.load_dataset_by_name(dataset_name).is_published()
 
     pos_path = None
     rrng_path = None
@@ -631,7 +631,7 @@ def add_analysis_data(dataset_name, sample_name, recon_name):
     errors = []
     try:
         # Upload the data
-        recon = APTReconstruction.load_dataset_by_name(dataset_name, sample_name, recon_name)
+        recon = nucapt.manager.APTReconstruction.load_dataset_by_name(dataset_name, sample_name, recon_name)
     except DatasetParseException as exc:
         flash('No such reconstruction!')
         return redirect('/dataset/%s/sample/%s' % (dataset_name, sample_name))
@@ -643,10 +643,10 @@ def add_analysis_data(dataset_name, sample_name, recon_name):
     if request.method == 'POST' and form.validate():
         try:
             # Create the directory
-            analysis_name = APTAnalysisDirectory.create_analysis_directory(form, dataset_name, sample_name, recon_name)
+            analysis_name = nucapt.manager.APTAnalysisDirectory.create_analysis_directory(form, dataset_name, sample_name, recon_name)
 
             # Upload the data
-            analysis_name = APTAnalysisDirectory.load_dataset_by_name(dataset_name, sample_name, recon_name,
+            analysis_name = nucapt.manager.APTAnalysisDirectory.load_dataset_by_name(dataset_name, sample_name, recon_name,
                                                                       analysis_name)
             files = request.files.getlist('files')
             if len(files) > 0:
@@ -678,7 +678,7 @@ def edit_analysis_metadata(dataset_name, sample_name, recon_name, analysis_name)
     errors = []
     try:
         # Upload the data
-        analysis = APTAnalysisDirectory.load_dataset_by_name(dataset_name, sample_name, recon_name, analysis_name)
+        analysis = nucapt.manager.APTAnalysisDirectory.load_dataset_by_name(dataset_name, sample_name, recon_name, analysis_name)
     except DatasetParseException as exc:
         flash('No such analysis!')
         return redirect('/dataset/%s/sample/%s/recon/%s' % (dataset_name, sample_name, recon_name))
@@ -726,13 +726,13 @@ def view_analysis(dataset_name, sample_name, recon_name, analysis_name):
     errors = []
     try:
         # Upload the data
-        analysis = APTAnalysisDirectory.load_dataset_by_name(dataset_name, sample_name, recon_name, analysis_name)
+        analysis = nucapt.manager.APTAnalysisDirectory.load_dataset_by_name(dataset_name, sample_name, recon_name, analysis_name)
     except DatasetParseException as exc:
         flash('No such analysis!')
         return redirect('/dataset/%s/sample/%s/recon/%s' % (dataset_name, sample_name, recon_name))
 
     # Determine whether the dataset has been published
-    is_published = APTDataDirectory.load_dataset_by_name(dataset_name).is_published()
+    is_published = nucapt.manager.APTDataDirectory.load_dataset_by_name(dataset_name).is_published()
 
     # Get the metadata
     analysis_metadata = analysis.load_metadata()

@@ -9,7 +9,9 @@ from datetime import date
 
 from bs4 import BeautifulSoup
 
-import nucapt
+os.environ['APP_CONFIG_FILE'] = '../../tests/test.app.conf'
+
+from nucapt.main import app
 from nucapt import manager
 from nucapt.manager import APTSampleDirectory, APTReconstruction, APTAnalysisDirectory
 
@@ -18,15 +20,16 @@ class TestWebsite(unittest.TestCase):
     def setUp(self):
         # Make a temporary directory
         manager.data_path = tempfile.mkdtemp()
-        nucapt.app.config['WORKING_PATH'] = manager.data_path
+        app.config['WORKING_PATH'] = manager.data_path
 
         # Set us to testing mode
-        nucapt.app.testing = True
-        nucapt.app.config['DEBUG_SKIP_AUTH'] = True
-        nucapt.app.config['DEBUG_SKIP_PUB'] = True
+        app.testing = True
+        app.config['DEBUG_SKIP_AUTH'] = True
+        app.config['DEBUG_SKIP_PUB'] = True
+        app.config['SECRET_KEY'] = 'sekrit!'
 
         # Make the client
-        self.app = nucapt.app.test_client()
+        self.app = app.test_client()
         with self.app.session_transaction() as sess:
             sess.update({
                 'is_authenticated': True,
@@ -82,7 +85,7 @@ class TestWebsite(unittest.TestCase):
             self.assertTrue(dataset in str(rv.data))
 
         # Test editing a dataset
-        rv = self.app.get('/dataset/%s/edit' % name)
+        rv = self.app.get('/dataset/%s/edit' % name, follow_redirects=True)
         self.assertEquals(200, rv.status_code)
 
         soup = BeautifulSoup(rv.data, 'html.parser')
