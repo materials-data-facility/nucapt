@@ -140,3 +140,5 @@ cython_debug/
 .idea/
 conf/app.conf
 working-data/
+nucapt_certs/
+
