@@ -436,7 +436,7 @@ class APTReconstruction(DataDirectory):
 
         #   Remove fields with None values
         for f in ['tip_radius', 'tip_image', 'shank_angle']:
-            if form_data[f] is None or form_data[f] is '':
+            if form_data[f] is None or form_data[f] == '':
                 del form_data[f]
         metadata = APTReconstructionMetadata(**form_data)
         metadata['creation_date'] = date.today().strftime("%d%b%y")
