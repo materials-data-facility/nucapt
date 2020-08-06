@@ -1,6 +1,7 @@
 #!/bin/bash
-docker run --rm -it -p 443:443 -p 80:80  \
+docker run -d -it -p 6543:443 \
   --mount "type=bind,source=$PWD/conf,destination=/conf" \
-  --mount "type=bind,source=$PWD/working-data,destination=/working-data" \
-  --mount "type=bind,source=$PWD/nucapt_certs,destination=/etc/nginx/ssl" \
-  materialsdatafacility/nucaptdms:develop
+  --mount "type=bind,source=/volume1/nucapt-data/working-data,destination=/working-data" \
+  --mount "type=bind,source=$PWD/certs,destination=/etc/nginx/ssl" \
+  --name nucaptdms \
+	materialsdatafacility/nucaptdms:develop
