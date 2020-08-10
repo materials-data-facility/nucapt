@@ -218,12 +218,10 @@ def publish_dataset(dataset_name):
                                         session["tokens"]["mdf_dataset_submission"]
                                                ["refresh_token"],
                                         auth_client)
-        mdf_client = mdf_connect_client.MDFConnectClient(authorizer=mdf_authorizer)
 
-        # Create the transfer client
-        mdf_transfer_client = TransferClient(authorizer=
-                                             RefreshTokenAuthorizer(session["tokens"]["transfer.api.globus.org"]
-                                                                    ["refresh_token"], load_portal_client()))
+        test_mode = app.config['MDF_TEST']
+        mdf_client = mdf_connect_client.MDFConnectClient(authorizer=mdf_authorizer,
+                                                         test=test_mode)
 
         # Create the publication entry
         try:
@@ -236,33 +234,10 @@ def publish_dataset(dataset_name):
 
             result = mdf_client.submit_dataset(update=False)
             print(result)
-            # md_result = globus_publish_client.push_metadata(app.config.get("PUBLISH_COLLECTION"),
-            #                                                 form.convert_to_globus_publication())
-            # pub_endpoint = md_result['globus.shared_endpoint.name']
-            # submission_id = md_result["id"]
         except Exception as e:
             # TODO: Update status - not Published due to bad metadata
             raise e
 
-        # Transfer data
-        # try:
-            # '/' of the Globus endpoint for the working data is the working data path
-            # data_path = '/%s/' % (os.path.relpath(data.path, app.config['WORKING_PATH']))
-            # toolbox.quick_transfer(mdf_transfer_client, app.config["WORKING_DATA_ENDPOINT"],
-            #                        pub_endpoint, [(data_path, pub_path)], timeout=0)
-        # except Exception as e:
-        #     # TODO: Update status - not Published due to failed Transfer
-        #     raise e
-
-        # Send submission in for review
-        # try:
-        #     globus_publish_client.complete_submission(submission_id)
-        # except Exception as e:
-        #     # TODO: Raise exception - not Published due to Publish error
-        #     raise e
-        #
-        # # Mark dataset as complete.
-        # data.mark_as_published(submission_id)
 
         # Redirect to Globus Publish webpage
         return redirect("/dataset/" + dataset_name)

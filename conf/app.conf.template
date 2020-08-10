@@ -14,5 +14,8 @@ AUTH_CALLBACK_URL = '<<Full URL for /authcallback endpoint>>'
 DEBUG_SKIP_PUB = False
 WORKING_DATA_ENDPOINT = '<<Globus Endpoint ID>>'
 
+# Submit data to MDF test/sandbox?
+MDF_TEST = True
+
 # General configuration
 WORKING_PATH = '/working-data'
